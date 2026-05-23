@@ -14,7 +14,7 @@ class GameService {
     const skip = (page - 1) * limit;
 
     // 1. Build MongoDB Filters (operators: $gte, $lte, $in, $regex)
-    const filter = {};
+    const filter = { isDeleted: { $ne: true } };
 
     // Text Search on Game Name (Regex case-insensitive)
     if (queryParams.q) {
@@ -87,7 +87,7 @@ class GameService {
    * @param {String} appid - Steam app ID
    */
   async getGameByAppId(appid) {
-    const game = await Game.findOne({ appid });
+    const game = await Game.findOne({ appid, isDeleted: { $ne: true } });
     if (!game) {
       const error = new Error('Game not found');
       error.statusCode = 404;
@@ -104,7 +104,7 @@ class GameService {
     const { appid } = gameData;
 
     // Check if game appid already exists
-    const gameExists = await Game.findOne({ appid });
+    const gameExists = await Game.findOne({ appid, isDeleted: { $ne: true } });
     if (gameExists) {
       const error = new Error(`Game with appid '${appid}' already exists`);
       error.statusCode = 400;
@@ -125,7 +125,7 @@ class GameService {
     delete updateData.appid;
 
     const game = await Game.findOneAndUpdate(
-      { appid },
+      { appid, isDeleted: { $ne: true } },
       updateData,
       { new: true, runValidators: true }
     );
@@ -144,7 +144,11 @@ class GameService {
    * @param {String} appid - Steam app ID
    */
   async deleteGameByAppId(appid) {
-    const game = await Game.findOneAndDelete({ appid });
+    const game = await Game.findOneAndUpdate(
+      { appid, isDeleted: { $ne: true } },
+      { isDeleted: true },
+      { new: true }
+    );
     if (!game) {
       const error = new Error('Game not found');
       error.statusCode = 404;
