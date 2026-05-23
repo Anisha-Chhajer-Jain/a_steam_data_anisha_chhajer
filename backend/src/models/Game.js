@@ -43,6 +43,11 @@ const gameSchema = new mongoose.Schema({
   publisher: {
     type: String,
     index: true,
+  },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+    index: true,
   }
 }, {
   timestamps: true
