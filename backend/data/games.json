@@ -1,0 +1,38 @@
+[
+  {
+    "appid": "3057270",
+    "name": "Seafarer's Gambit",
+    "release_year": "2024",
+    "release_date": "Jul 5, 2024",
+    "genres": "Action;Adventure;Indie;RPG;Strategy",
+    "categories": "Single-player;Family Sharing",
+    "price": "3.99",
+    "recommendations": "0",
+    "developer": "Bouncy Rocket Studios",
+    "publisher": "Bouncy Rocket Studios"
+  },
+  {
+    "appid": "3822840",
+    "name": "Capitalist Misadventures",
+    "release_year": "2025",
+    "release_date": "Jul 25, 2025",
+    "genres": "Casual;Indie;Simulation;Strategy",
+    "categories": "Single-player;Save Anytime;Family Sharing",
+    "price": "7.99",
+    "recommendations": "0",
+    "developer": "Caramelo Studios",
+    "publisher": "Caramelo Studios"
+  },
+  {
+    "appid": "3216640",
+    "name": "The Beast and the Princess",
+    "release_year": "2025",
+    "release_date": "Jun 17, 2025",
+    "genres": "Adventure;Indie;Strategy",
+    "categories": "Single-player;Steam Achievements;Full controller support;Custom Volume Controls;Adjustable Difficulty",
+    "price": "0.00",
+    "recommendations": "0",
+    "developer": "MangaGamer",
+    "publisher": "MangaGamer"
+  }
+]
