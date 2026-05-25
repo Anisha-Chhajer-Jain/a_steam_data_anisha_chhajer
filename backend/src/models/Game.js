@@ -48,6 +48,10 @@ const gameSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
     index: true,
+  },
+  history: {
+    type: [Object],
+    default: [],
   }
 }, {
   timestamps: true
