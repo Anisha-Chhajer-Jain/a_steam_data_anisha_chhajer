@@ -9,6 +9,7 @@ const loggerMiddleware = require('./middleware/loggerMiddleware');
 const errorMiddleware = require('./middleware/errorMiddleware');
 const { sendSuccess, sendError } = require('./utils/responseHandler');
 const Game = require('./models/Game');
+const Review = require('./models/Review');
 const { protect, authorize } = require('./middleware/authMiddleware');
 
 // Connect to MongoDB
@@ -322,8 +323,360 @@ app.delete('/api/v1/games/:appid', protect, authorize('admin'), async (req, res,
   }
 });
 
-// --- Nest reviews sub-router under games ---
-app.use('/api/v1/games/:appid/reviews', reviewRoutes);
+// --- Game Information, Media, and Reviews Sub-routes ---
+
+// 1. GET /api/v1/games/:appid/screenshots - Fetch screenshots of a game
+app.get('/api/v1/games/:appid/screenshots', async (req, res, next) => {
+  try {
+    const { appid } = req.params;
+    const game = await Game.findOne({ appid, isDeleted: { $ne: true } });
+    if (!game) {
+      return sendError(res, 'Game not found', 404);
+    }
+    const screenshots = game.screenshots && game.screenshots.length > 0
+      ? game.screenshots
+      : [
+          `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/ss_1.jpg`,
+          `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/ss_2.jpg`,
+          `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/ss_3.jpg`
+        ];
+    return sendSuccess(res, screenshots, 200);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 2. GET /api/v1/games/:appid/trailers - Fetch trailers and gameplay videos
+app.get('/api/v1/games/:appid/trailers', async (req, res, next) => {
+  try {
+    const { appid } = req.params;
+    const game = await Game.findOne({ appid, isDeleted: { $ne: true } });
+    if (!game) {
+      return sendError(res, 'Game not found', 404);
+    }
+    const trailers = game.trailers && game.trailers.length > 0
+      ? game.trailers
+      : [
+          {
+            id: "trailer_1",
+            name: "Official Gameplay Trailer",
+            url: `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/movie_max.mp4`,
+            thumbnail: `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/movie_600x337.jpg`
+          }
+        ];
+    return sendSuccess(res, trailers, 200);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 3. GET /api/v1/games/:appid/reviews/stats - Get average ratings & recommendation metrics (Aggregation Pipeline)
+app.get('/api/v1/games/:appid/reviews/stats', async (req, res, next) => {
+  try {
+    const { appid } = req.params;
+    const game = await Game.findOne({ appid });
+    if (!game) {
+      return sendError(res, 'Game not found', 404);
+    }
+
+    const stats = await Review.aggregate([
+      { $match: { game: game._id } },
+      {
+        $group: {
+          _id: '$game',
+          totalReviews: { $sum: 1 },
+          avgRating: { $avg: '$rating' },
+          totalRecommended: {
+            $sum: { $cond: [{ $eq: ['$recommend', true] }, 1, 0] }
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          gameId: '$_id',
+          totalReviews: 1,
+          avgRating: { $round: ['$avgRating', 1] },
+          recommendationRate: {
+            $round: [
+              { $multiply: [{ $divide: ['$totalRecommended', '$totalReviews'] }, 100] },
+              0
+            ]
+          }
+        }
+      }
+    ]);
+
+    if (stats.length === 0) {
+      return sendSuccess(res, {
+        totalReviews: 0,
+        avgRating: 0,
+        recommendationRate: 0,
+      }, 200);
+    }
+
+    return sendSuccess(res, stats[0], 200);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 4. GET /api/v1/games/:appid/reviews - Fetch user reviews
+app.get('/api/v1/games/:appid/reviews', async (req, res, next) => {
+  try {
+    const { appid } = req.params;
+    const game = await Game.findOne({ appid });
+    if (!game) {
+      return sendError(res, 'Game not found', 404);
+    }
+    const reviews = await Review.find({ game: game._id })
+      .populate('user', 'name email')
+      .sort('-createdAt');
+    return sendSuccess(res, reviews, 200);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 5. POST /api/v1/games/:appid/reviews - Add a user review (Authenticated Users)
+app.post('/api/v1/games/:appid/reviews', protect, async (req, res, next) => {
+  try {
+    const { appid } = req.params;
+    const { rating, comment, recommend } = req.body;
+
+    const game = await Game.findOne({ appid });
+    if (!game) {
+      return sendError(res, 'Game not found', 404);
+    }
+
+    const existingReview = await Review.findOne({ game: game._id, user: req.user._id });
+    if (existingReview) {
+      return sendError(res, 'You have already submitted a review for this game', 400);
+    }
+
+    const review = await Review.create({
+      user: req.user._id,
+      game: game._id,
+      rating,
+      comment,
+      recommend: recommend !== undefined ? recommend : true,
+    });
+
+    return sendSuccess(res, review, 201);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 6. PATCH /api/v1/games/:appid/reviews/:reviewId - Update user review (Authenticated Users)
+app.patch('/api/v1/games/:appid/reviews/:reviewId', protect, async (req, res, next) => {
+  try {
+    const { reviewId } = req.params;
+    const { rating, comment, recommend } = req.body;
+
+    let review = await Review.findById(reviewId);
+    if (!review) {
+      return sendError(res, 'Review not found', 404);
+    }
+
+    if (review.user.toString() !== req.user._id.toString()) {
+      return sendError(res, 'Not authorized to update this review', 403);
+    }
+
+    if (rating !== undefined) review.rating = rating;
+    if (comment !== undefined) review.comment = comment;
+    if (recommend !== undefined) review.recommend = recommend;
+
+    await review.save();
+    return sendSuccess(res, review, 200);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 7. DELETE /api/v1/games/:appid/reviews/:reviewId - Delete user review (Authenticated Users)
+app.delete('/api/v1/games/:appid/reviews/:reviewId', protect, async (req, res, next) => {
+  try {
+    const { reviewId } = req.params;
+
+    const review = await Review.findById(reviewId);
+    if (!review) {
+      return sendError(res, 'Review not found', 404);
+    }
+
+    if (review.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return sendError(res, 'Not authorized to delete this review', 403);
+    }
+
+    await Review.deleteOne({ _id: reviewId });
+    return sendSuccess(res, { message: 'Review successfully deleted' }, 200);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 8. GET /api/v1/games/:appid/system-requirements - Fetch system requirements
+app.get('/api/v1/games/:appid/system-requirements', async (req, res, next) => {
+  try {
+    const { appid } = req.params;
+    const game = await Game.findOne({ appid, isDeleted: { $ne: true } });
+    if (!game) {
+      return sendError(res, 'Game not found', 404);
+    }
+
+    const requirements = {
+      minimum: {
+        os: "Windows 10 64-bit",
+        processor: "Intel Core i5-4460 or AMD Ryzen 3 1200",
+        memory: "8 GB RAM",
+        graphics: "NVIDIA GeForce GTX 960 or AMD Radeon RX 460",
+        directX: "Version 12",
+        storage: "50 GB available space"
+      },
+      recommended: {
+        os: "Windows 10/11 64-bit",
+        processor: "Intel Core i7-8700 or AMD Ryzen 5 3600X",
+        memory: "16 GB RAM",
+        graphics: "NVIDIA GeForce GTX 1070 or AMD Radeon RX 590",
+        directX: "Version 12",
+        storage: "50 GB SSD available space"
+      }
+    };
+    return sendSuccess(res, requirements, 200);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 9. GET /api/v1/games/:appid/dlc - Fetch downloadable content list
+app.get('/api/v1/games/:appid/dlc', async (req, res, next) => {
+  try {
+    const { appid } = req.params;
+    const game = await Game.findOne({ appid, isDeleted: { $ne: true } });
+    if (!game) {
+      return sendError(res, 'Game not found', 404);
+    }
+
+    const dlcList = [
+      {
+        dlc_appid: `${appid}1`,
+        name: `${game.name} - Digital Artbook & Soundtrack`,
+        price: 9.99,
+        released: true
+      },
+      {
+        dlc_appid: `${appid}2`,
+        name: `${game.name} - Cyber Expansion Pack`,
+        price: 19.99,
+        released: true
+      }
+    ];
+    return sendSuccess(res, dlcList, 200);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 10. GET /api/v1/games/:appid/achievements - Fetch achievements
+app.get('/api/v1/games/:appid/achievements', async (req, res, next) => {
+  try {
+    const { appid } = req.params;
+    const game = await Game.findOne({ appid, isDeleted: { $ne: true } });
+    if (!game) {
+      return sendError(res, 'Game not found', 404);
+    }
+
+    const achievements = [
+      {
+        id: "ach_first_steps",
+        name: "First Steps",
+        description: "Complete the introductory mission.",
+        icon: `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/ach_1.jpg`,
+        unlockedPercentage: 84.5
+      },
+      {
+        id: "ach_hardcore",
+        name: "Legendary Survivor",
+        description: "Complete the game on maximum difficulty.",
+        icon: `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/ach_2.jpg`,
+        unlockedPercentage: 4.2
+      }
+    ];
+    return sendSuccess(res, achievements, 200);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 11. GET /api/v1/games/:appid/leaderboards - Fetch leaderboard rankings
+app.get('/api/v1/games/:appid/leaderboards', async (req, res, next) => {
+  try {
+    const { appid } = req.params;
+    const game = await Game.findOne({ appid, isDeleted: { $ne: true } });
+    if (!game) {
+      return sendError(res, 'Game not found', 404);
+    }
+
+    const leaderboards = [
+      { rank: 1, username: "SpeedrunnerX", score: 94820, country: "US" },
+      { rank: 2, username: "AnishaChhajer", score: 91300, country: "IN" },
+      { rank: 3, username: "GamerPro", score: 87500, country: "UK" }
+    ];
+    return sendSuccess(res, leaderboards, 200);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 12. GET /api/v1/games/:appid/updates - Fetch latest game updates
+app.get('/api/v1/games/:appid/updates', async (req, res, next) => {
+  try {
+    const { appid } = req.params;
+    const game = await Game.findOne({ appid, isDeleted: { $ne: true } });
+    if (!game) {
+      return sendError(res, 'Game not found', 404);
+    }
+
+    const updates = [
+      {
+        version: "v1.1.0",
+        title: "Performance Optimization Update",
+        date: new Date().toISOString().split('T')[0],
+        changelog: [
+          "Optimized graphics rendering pipelines to reduce memory footprint by 15%",
+          "Fixed crash related to windowed mode toggling",
+          "Balanced price metrics for primary custom achievements"
+        ]
+      }
+    ];
+    return sendSuccess(res, updates, 200);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 13. GET /api/v1/games/:appid/news - Fetch game related news
+app.get('/api/v1/games/:appid/news', async (req, res, next) => {
+  try {
+    const { appid } = req.params;
+    const game = await Game.findOne({ appid, isDeleted: { $ne: true } });
+    if (!game) {
+      return sendError(res, 'Game not found', 404);
+    }
+
+    const news = [
+      {
+        title: `${game.name} Summer Sale & Special Event!`,
+        author: "Publisher News Network",
+        publishedAt: new Date().toISOString(),
+        content: `The ultimate developer event has started! Play ${game.name} today and unlock limited seasonal achievements.`
+      }
+    ];
+    return sendSuccess(res, news, 200);
+  } catch (err) {
+    next(err);
+  }
+});
 
 // Base route
 app.get('/', (req, res) => {

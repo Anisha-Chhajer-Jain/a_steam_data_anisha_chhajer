@@ -52,6 +52,14 @@ const gameSchema = new mongoose.Schema({
   history: {
     type: [Object],
     default: [],
+  },
+  screenshots: {
+    type: [String],
+    default: [],
+  },
+  trailers: {
+    type: [Object],
+    default: [],
   }
 }, {
   timestamps: true
