@@ -41,11 +41,11 @@ app.use("/api/v1/games/paginate", require("../../../routes/gamePagination.route"
 app.use("/api/v1/games/sort", require("../../../routes/gameSort.route"));
 
 // C. Analytics routes (using new Mongoose database-backed router)
-const analyticsRouter = require("../../../routes/analytics.route.mjs").default;
+const analyticsRouter = require("./routes/analytics.route.mjs").default;
 app.use("/api/v1/analytics", analyticsRouter);
 
 // D. Auth & JWT routes (/api/v1/auth/... and /api/v1/jwt/...)
-const { authRouter, jwtRouter } = require("../../../routes/auth.route");
+const { authRouter, jwtRouter } = require("./routes/auth.route");
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/jwt", jwtRouter);
 
@@ -56,7 +56,7 @@ app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/protected", protectedRouter);
 
 // F. Advanced, notifications, and miscellaneous utility routes
-app.use("/api/v1", require("../../../routes/advanced.route"));
+app.use("/api/v1", require("./routes/advanced.route"));
 
 // G. Parameterized and dynamic CRUD routes (gameParam contains /genre/:genre etc.)
 app.use("/api/v1/games", require("../../../routes/gameParam.route"));
