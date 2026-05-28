@@ -33,12 +33,12 @@ app.use(loggerMiddleware);
 // 3. Modular Routes (order-safe fall-through sequence)
 
 // A. Search Route (e.g. /api/v1/search/games?q=elden)
-app.use("/api/v1/search", require("../../../routes/gameSearch.route"));
+app.use("/api/v1/search", require("./routes/gameSearch.route"));
 
 // B. Specific filter, pagination, and sort routes
 app.use("/api/v1/games/filter", require("./routes/gameFilter.route"));
 app.use("/api/v1/games/paginate", require("../../../routes/gamePagination.route"));
-app.use("/api/v1/games/sort", require("../../../routes/gameSort.route"));
+app.use("/api/v1/games/sort", require("./routes/gameSort.route"));
 
 // C. Analytics routes (using new Mongoose database-backed router)
 const analyticsRouter = require("./routes/analytics.route.mjs").default;
@@ -50,7 +50,7 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/jwt", jwtRouter);
 
 // E. Middleware practice and admin/protected routes
-const { middlewareRouter, adminRouter, protectedRouter } = require("../../../routes/middleware.route");
+const { middlewareRouter, adminRouter, protectedRouter } = require("./routes/middleware.route");
 app.use("/api/v1/middleware", middlewareRouter);
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/protected", protectedRouter);
