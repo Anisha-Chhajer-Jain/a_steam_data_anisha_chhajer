@@ -30,9 +30,7 @@ app.use(express.urlencoded({ extended: true }));
 // Custom Logging Middleware
 app.use(loggerMiddleware);
 
-// ===========================================================================
 // 3. Modular Routes (order-safe fall-through sequence)
-// ===========================================================================
 
 // A. Search Route (e.g. /api/v1/search/games?q=elden)
 app.use("/api/v1/search", require("../../../routes/gameSearch.route"));
@@ -65,9 +63,7 @@ app.use("/api/v1/games", require("../../../routes/gameParam.route"));
 app.use("/api/v1/games/:appid", require("../../../routes/gameInfo.route"));
 app.use("/api/v1/games", require("../../../routes/game.route"));
 
-// ===========================================================================
 // 4. Wildcard HEAD and OPTIONS Handlers (Fulfills Good to Have Routes dynamically)
-// ===========================================================================
 app.head('/*path', (req, res) => {
   res.set({
     'Content-Type': 'application/json',
