@@ -36,7 +36,7 @@ app.use(loggerMiddleware);
 app.use("/api/v1/search", require("../../../routes/gameSearch.route"));
 
 // B. Specific filter, pagination, and sort routes
-app.use("/api/v1/games/filter", require("../../../routes/gameFilter.route"));
+app.use("/api/v1/games/filter", require("./routes/gameFilter.route"));
 app.use("/api/v1/games/paginate", require("../../../routes/gamePagination.route"));
 app.use("/api/v1/games/sort", require("../../../routes/gameSort.route"));
 
@@ -59,9 +59,9 @@ app.use("/api/v1/protected", protectedRouter);
 app.use("/api/v1", require("./routes/advanced.route"));
 
 // G. Parameterized and dynamic CRUD routes (gameParam contains /genre/:genre etc.)
-app.use("/api/v1/games", require("../../../routes/gameParam.route"));
-app.use("/api/v1/games/:appid", require("../../../routes/gameInfo.route"));
-app.use("/api/v1/games", require("../../../routes/game.route"));
+app.use("/api/v1/games", require("./routes/gameParam.route"));
+app.use("/api/v1/games/:appid", require("./routes/gameInfo.route"));
+app.use("/api/v1/games", require("./routes/game.route"));
 
 // 4. Wildcard HEAD and OPTIONS Handlers (Fulfills Good to Have Routes dynamically)
 app.head('/*path', (req, res) => {
