@@ -2,10 +2,14 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
+const connectDB = require('./config/db');
 
 const loggerMiddleware = require('./middleware/loggerMiddleware');
 const errorMiddleware = require('./middleware/errorMiddleware');
 const { sendSuccess } = require('./utils/responseHandler');
+
+// Connect to Database
+connectDB();
 
 const app = express();
 
@@ -37,12 +41,11 @@ app.use("/api/v1/search", require("./routes/gameSearch.route"));
 
 // B. Specific filter, pagination, and sort routes
 app.use("/api/v1/games/filter", require("./routes/gameFilter.route"));
-app.use("/api/v1/games/paginate", require("../../../routes/gamePagination.route"));
+app.use("/api/v1/games/paginate", require("./routes/gamePagination.route"));
 app.use("/api/v1/games/sort", require("./routes/gameSort.route"));
 
-// C. Analytics routes (using new Mongoose database-backed router)
-const analyticsRouter = require("./routes/analytics.route.mjs").default;
-app.use("/api/v1/analytics", analyticsRouter);
+// C. Analytics routes (Mongoose database-backed, CommonJS)
+app.use("/api/v1/analytics", require("./routes/analytics.route"));
 
 // D. Auth & JWT routes (/api/v1/auth/... and /api/v1/jwt/...)
 const { authRouter, jwtRouter } = require("./routes/auth.route");
