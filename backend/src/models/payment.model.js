@@ -1,11 +1,13 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
-const paymentSchema = new mongoose.Schema({
-  PaymentStatus: { type: String, required: true },
-  TotalAmount: { type: Number, required: true },
-  status: { type: String },
-  method: { type: String, required: true }
-}, { timestamps: true });
+const paymentSchema = new mongoose.Schema(
+  {
+    PaymentStatus: { type: String, required: true },
+    TotalAmount:   { type: Number, required: true },
+    status:        { type: String },
+    method:        { type: String, required: true },
+  },
+  { timestamps: true }
+);
 
-export default mongoose.model("Payment", paymentSchema);
-
+module.exports = mongoose.model("Payment", paymentSchema);
