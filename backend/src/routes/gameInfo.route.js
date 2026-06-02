@@ -1,20 +1,21 @@
 // src/routes/gameInfo.route.js
 // ---------------------------------------------------------------------------
-// Game Information Routes — Media, Reviews & Metadata sub-routes
-// ---------------------------------------------------------------------------
-// GET    /api/v1/games/:appid/screenshots
-// GET    /api/v1/games/:appid/trailers
-// GET    /api/v1/games/:appid/reviews/stats
-// GET    /api/v1/games/:appid/reviews
-// POST   /api/v1/games/:appid/reviews
-// PATCH  /api/v1/games/:appid/reviews/:reviewId
-// DELETE /api/v1/games/:appid/reviews/:reviewId
-// GET    /api/v1/games/:appid/system-requirements
-// GET    /api/v1/games/:appid/dlc
-// GET    /api/v1/games/:appid/achievements
-// GET    /api/v1/games/:appid/leaderboards
-// GET    /api/v1/games/:appid/updates
-// GET    /api/v1/games/:appid/news
+// Game info sub-routes that return media, review stats, and game metadata.
+//
+// Example requests:
+//   GET /api/v1/games/:appid/screenshots
+//   response: [ screenshot URL strings ]
+//
+//   GET /api/v1/games/:appid/reviews
+//   response: [ review objects ]
+//
+//   POST /api/v1/games/:appid/reviews
+//   header: Authorization: Bearer {{token}}
+//   body: { rating, comment, recommend }
+//   response: created review object
+//
+//   GET /api/v1/games/:appid/system-requirements
+//   response: minimum and recommended specs
 // ---------------------------------------------------------------------------
 
 const express = require("express");

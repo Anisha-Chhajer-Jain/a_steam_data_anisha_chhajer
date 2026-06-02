@@ -167,6 +167,14 @@ JWT_REFRESH_SECRET=your_jwt_refresh_secret_key
 NODE_ENV=development
 ```
 
+If you are running MongoDB locally, you can set:
+
+```env
+MONGODB_URI=mongodb://127.0.0.1:27017/steam_games
+```
+
+Make sure the MongoDB server is started before running the backend.
+
 ## 5️⃣ Run Development Server
 
 ```bash

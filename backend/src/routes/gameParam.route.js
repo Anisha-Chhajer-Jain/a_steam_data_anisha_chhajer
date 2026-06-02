@@ -1,16 +1,15 @@
 // src/routes/gameParam.route.js
 // ---------------------------------------------------------------------------
-// Route Parameter Routes — Fetch games filtered by URL segment values
-// ---------------------------------------------------------------------------
-// GET /api/v1/games/genre/:genre
-// GET /api/v1/games/developer/:developer
-// GET /api/v1/games/publisher/:publisher
-// GET /api/v1/games/platform/:platform
-// GET /api/v1/games/tag/:tag
-// GET /api/v1/games/release-year/:year
-// GET /api/v1/games/rating/:rating
-// GET /api/v1/games/price/:price
-// GET /api/v1/games/feature/:feature
+// Parameter-based routes that filter games from the path values.
+//
+// Example request:
+//   GET /api/v1/games/genre/Action
+//   response: games with genre "Action"
+//
+// Request parameters:
+//   genre, developer, publisher, platform, tag, year, rating, price, feature
+//
+// All responses include page metadata and an array of matching games.
 // ---------------------------------------------------------------------------
 
 const express = require("express");

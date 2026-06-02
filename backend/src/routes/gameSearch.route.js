@@ -1,37 +1,46 @@
 // src/routes/gameSearch.route.js
 // ---------------------------------------------------------------------------
-// Search Routes — Full-text search across name, genres, tags, categories
-// ---------------------------------------------------------------------------
-// GET /api/v1/search/games?q=elden
-// GET /api/v1/search/games?q=multiplayer
-// GET /api/v1/search/games?q=horror   ... etc.
+// Search routes for finding games with query text.
+//
+// Example:
+//   GET /api/v1/search/games?q=elden
+//   response: matching games and total count
+//
+// Request query:
+//   q: search term
 // ---------------------------------------------------------------------------
 
 const express = require("express");
 const router  = express.Router();
 
-const { games }                  = require("../store/dataStore");
+const Game                       = require("../models/Game");
 const { sendSuccess, sendError } = require("../utils/responseHandler");
 
 // GET /api/v1/search/games?q=<term>
-router.get("/games", (req, res) => {
-  const { q } = req.query;
-  if (!q || q.trim() === "")
-    return sendError(res, "Search query ?q= is required and cannot be empty", 400);
+router.get("/games", async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim() === "")
+      return sendError(res, "Search query ?q= is required and cannot be empty", 400);
 
-  const query   = q.toLowerCase().trim();
-  const matched = games.filter(
-    g =>
-      !g.isDeleted &&
-      (
-        g.name.toLowerCase().includes(query) ||
-        g.genres.some(genre => genre.toLowerCase().includes(query)) ||
-        g.tags.some(tag   => tag.toLowerCase().includes(query))    ||
-        g.categories.some(cat => cat.toLowerCase().includes(query))
-      )
-  );
+    const regex = new RegExp(q.trim(), "i");
 
-  return sendSuccess(res, matched, 200, { total: matched.length });
+    const games = await Game.find({
+      isDeleted: false,
+      $or: [
+        { name:       regex },
+        { genres:     regex },
+        { tags:       regex },
+        { categories: regex },
+        { developer:  regex },
+        { publisher:  regex },
+      ]
+    });
+
+    return sendSuccess(res, games, 200, { total: games.length });
+  } catch (err) {
+    return sendError(res, err.message, 500);
+  }
 });
 
 module.exports = router;

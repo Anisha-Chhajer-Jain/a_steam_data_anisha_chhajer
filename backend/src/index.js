@@ -2,16 +2,27 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
-const connectDB = require('./config/db');
+const { connectDB, isDbConnected } = require('./config/db');
 
 const loggerMiddleware = require('./middleware/loggerMiddleware');
 const errorMiddleware = require('./middleware/errorMiddleware');
 const { sendSuccess } = require('./utils/responseHandler');
 
-// Connect to Database
-connectDB();
-
 const app = express();
+
+const startServer = async () => {
+  await connectDB();
+
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    if (!isDbConnected()) {
+      console.warn('Warning: MongoDB is not connected. Database-backed routes will fail until MongoDB is available.');
+    }
+  });
+};
+
+startServer();
 
 // 1. Basic Rate Limiting
 const limiter = rateLimit({
@@ -96,9 +107,3 @@ app.get('/', (req, res) => {
 
 // 5. Centralized Error Handler Middleware
 app.use(errorMiddleware);
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});

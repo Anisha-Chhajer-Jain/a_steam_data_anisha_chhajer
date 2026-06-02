@@ -1,7 +1,3 @@
-// src/routes/advanced.route.js
-// ---------------------------------------------------------------------------
-// Advanced, General Utility, Notification & Steam Games Analytics
-// ---------------------------------------------------------------------------
 
 const express = require("express");
 const router  = express.Router();

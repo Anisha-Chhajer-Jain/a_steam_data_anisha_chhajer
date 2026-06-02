@@ -1,3 +1,19 @@
+// src/routes/gameRoutes.js
+// ---------------------------------------------------------------------------
+// Game routes for public listing and protected admin operations.
+//
+// Example:
+//   GET /api/v1/games
+//   response: list of games
+//
+//   POST /api/v1/games
+//   header: Authorization: Bearer {{token}}
+//   response: created game
+//
+//   PATCH /api/v1/games/:appid
+//   header: Authorization: Bearer {{token}}
+//   response: updated game
+// ---------------------------------------------------------------------------
 const express = require('express');
 const {
   getGames,

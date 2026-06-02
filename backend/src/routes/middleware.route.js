@@ -1,6 +1,17 @@
 // src/routes/middleware.route.js
 // ---------------------------------------------------------------------------
-// Middleware Practice, Admin & Protected Simulation Routes
+// Demo and practice routes for middleware, admin, and protected access.
+//
+// These show how authentication, authorization, and error handling work.
+//
+// Example:
+//   GET /api/v1/middleware/logger
+//   response: middleware active message
+//
+//   POST /api/v1/protected/games
+//   header: Authorization: Bearer {{token}}
+//   body: { appid, name }
+//   response: created protected game entry
 // ---------------------------------------------------------------------------
 
 const express = require("express");
