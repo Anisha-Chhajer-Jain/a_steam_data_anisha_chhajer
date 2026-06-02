@@ -17,8 +17,8 @@ The project provides powerful CRUD operations, authentication, filtering, search
 
 ### Live Links
 
-**Backend Health Check:** *Your Deployment URL*  
-**Postman Documentation:** *Your Postman Collection URL*  
+<!-- **Backend :** *Your Deployment URL*   -->
+<!-- **Postman Documentation:** *Your Postman Collection URL*   -->
 **Dataset:** https://drive.google.com/file/d/1mNxlDr1ZGAohCsFxMtZowDZln4i-ZRmi/view
 
 ---
@@ -136,7 +136,7 @@ arcade-stream-backend/
 ## 1️⃣ Clone Repository
 
 ```bash
-git clone <your-repository-url>
+git clone <https://github.com/Anisha-Chhajer-Jain/a_steam_data_anisha_chhajer/tree/main>
 ```
 
 ## 2️⃣ Navigate to Project Folder
@@ -440,7 +440,7 @@ This project is developed for educational and academic purposes.
 
 **Anisha Chhajer**
 
-GitHub: https://github.com/your-github-username
+GitHub: https://github.com/Anisha-Chhajer-Jain
 
 ---
 
