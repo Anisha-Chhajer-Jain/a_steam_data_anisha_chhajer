@@ -1,3 +1,13 @@
+// src/routes/analytics.route.js
+// ---------------------------------------------------------------------------
+// Analytics endpoints for revenue, orders, customers, products, categories, payments,
+// locations, returns, and discounts.
+//
+// Example response shape:
+//   { success: true, data: { ... } }
+//
+// These routes are read-only GET endpoints.
+// ---------------------------------------------------------------------------
 const express = require("express");
 const analytics = require("../controllers/analytics.controller");
 

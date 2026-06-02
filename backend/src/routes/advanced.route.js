@@ -1,6 +1,19 @@
 // src/routes/advanced.route.js
 // ---------------------------------------------------------------------------
-// Advanced, General Utility, Notification & Steam Games Analytics
+// Utility and advanced routes for the Steam Games API.
+//
+// These endpoints provide extra features such as random game picks,
+// recommendations, trending data, notification management, and simple analytics.
+//
+// Each route is built to be easy to call and returns JSON in the form:
+//   { success: boolean, data: ..., message?: string }
+//
+// Example:
+//   GET /api/v1/games/random
+//   response: a random game object
+//
+//   PATCH /api/v1/notifications/read/:id
+//   response: the updated notification object
 // ---------------------------------------------------------------------------
 
 const express = require("express");

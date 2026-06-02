@@ -1,6 +1,22 @@
 // src/routes/auth.route.js
 // ---------------------------------------------------------------------------
-// Authentication (Session & JWT) Routes
+// Authentication routes: session-based and JWT-based auth flows.
+//
+// These endpoints live under two bases:
+//   - /api/v1/auth    (register, login, profile, password flows)
+//   - /api/v1/jwt     (token generation, verification, protected JWT routes)
+//
+// Each route returns JSON with this shape:
+//   { success: boolean, data: object, message?: string }
+//
+// Example:
+//   POST /api/v1/auth/register
+//   body: { name, email, password }
+//   response: { success: true, data: { message, user } }
+//
+//   GET /api/v1/auth/profile
+//   header: Authorization: Bearer {{token}}
+//   response: { success: true, data: userProfile }
 // ---------------------------------------------------------------------------
 
 const express = require("express");

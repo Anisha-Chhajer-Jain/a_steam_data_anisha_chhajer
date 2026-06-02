@@ -1,18 +1,23 @@
 // src/routes/gamePagination.route.js
 // ---------------------------------------------------------------------------
-// Pagination Routes — Demonstrates page / limit / offset patterns
-// ---------------------------------------------------------------------------
-// GET /api/v1/games/paginate?page=1&limit=2
-// GET /api/v1/games/paginate/info             → shows pagination metadata only
-// GET /api/v1/games/paginate/first-page       → hardcoded first page shortcut
-// GET /api/v1/games/paginate/last-page        → last page of results
+// Pagination routes for browsing game collections.
+//
+// All responses use the standard JSON format:
+//   { success: boolean, data: array, meta: pagination }
+//
+// Example:
+//   GET /api/v1/games/paginate?page=1&limit=2
+//   response: { data: [...games], meta: { page, limit, total, pages } }
+//
+//   GET /api/v1/games/paginate/info
+//   response: page metadata only
 // ---------------------------------------------------------------------------
 
 const express = require("express");
 const router  = express.Router();
 
-const { games, paginateAndSort } = require("../a_steam_data_anisha_chhajer/backend/src/store/dataStore");
-const { sendSuccess }            = require("../a_steam_data_anisha_chhajer/backend/src/utils/responseHandler");
+const { games, paginateAndSort } = require("../store/dataStore");
+const { sendSuccess }            = require("../utils/responseHandler");
 
 // Main paginate endpoint — supports ?page= ?limit= ?sort=
 router.get("/", (req, res) => {
