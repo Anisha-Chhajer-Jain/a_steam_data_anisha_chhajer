@@ -133,6 +133,14 @@ MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 ```
 
+If you are running MongoDB locally, you can set:
+
+```env
+MONGODB_URI=mongodb://127.0.0.1:27017/steam_games
+```
+
+Make sure the MongoDB server is started before running the backend.
+
 ### 5️⃣ Start Development Server
 **Development Mode**
 ```bash
