@@ -1,230 +1,441 @@
-# Arcade Stream Backend API
+# 🎮 Arcade Stream Backend API
 
-A production-ready backend API built using Node.js, Express.js, and MongoDB for managing the Steam Games dataset.
+A scalable and production-ready backend API built using **Node.js, Express.js, MongoDB, and Mongoose** for managing and analyzing the **Steam Games Dataset**.
 
-This project provides:
+The project provides powerful CRUD operations, authentication, filtering, searching, pagination, sorting, analytics, and aggregation features following a clean **MVC Architecture**.
 
-- RESTful APIs
+---
+
+# 📌 Project Information
+
+**Project Name:** Arcade Stream Backend API  
+**Repository:** *Your GitHub Repository URL*  
+**Backend Stack:** Node.js, Express.js, MongoDB, Mongoose  
+**Package Manager:** npm  
+**Deployment Target:** Render  
+**Architecture:** MVC (Model View Controller)
+
+### Live Links
+
+**Backend Health Check:** *Your Deployment URL*  
+**Postman Documentation:** *Your Postman Collection URL*  
+**Dataset:** https://drive.google.com/file/d/1mNxlDr1ZGAohCsFxMtZowDZln4i-ZRmi/view
+
+---
+
+# 🚀 Features
+
+## Core Features
+
+- RESTful API Architecture
+- MongoDB Database Integration
+- Mongoose Schema Modeling
 - CRUD Operations
-- Authentication using JWT
-- Filtering, Searching, Pagination & Sorting
-- Aggregation & Analytics APIs
-- Middleware-based architecture
-- Scalable MVC folder structure
+- Pagination
+- Filtering
+- Sorting
+- Search Functionality
+- JWT Authentication
+- Protected Routes
+- Global Error Handling
+- Middleware Architecture
+- Aggregation Pipelines
+- Scalable Folder Structure
+- Environment Variable Configuration
+- API Testing with Postman
 
-## 🚀 Tech Stack
+---
 
-| Technology | Usage |
-| :--- | :--- |
-| Node.js | Backend Runtime |
-| Express.js | Web Framework |
-| MongoDB | Database |
-| Mongoose | ODM |
+# 🛠️ Tech Stack
+
+| Technology | Purpose |
+|------------|---------|
+| Node.js | Runtime Environment |
+| Express.js | Backend Framework |
+| MongoDB | NoSQL Database |
+| Mongoose | ODM for MongoDB |
 | JWT | Authentication |
-| bcrypt | Password Hashing |
+| bcryptjs | Password Hashing |
 | dotenv | Environment Variables |
 | cors | Cross-Origin Requests |
+| morgan | Request Logging |
+| helmet | Security Middleware |
 
-## 📁 Project Structure
+---
+
+# 📂 Project Structure
 
 ```text
-project-root/
+arcade-stream-backend/
 │
-├── config/
-│   └── db.js
+├── README.md
 │
-├── controllers/
-│
-├── services/
-│
-├── models/
-│
-├── routes/
-│
-├── middlewares/
-│
-├── utils/
-│
-├── .env
-├── server.js
-├── package.json
-└── README.md
+├── server/
+│   ├── .env
+│   ├── .env.example
+│   ├── .gitignore
+│   ├── package.json
+│   ├── package-lock.json
+│   │
+│   └── src/
+│       ├── app.js
+│       ├── server.js
+│       │
+│       ├── config/
+│       │   ├── db.js
+│       │   └── env.js
+│       │
+│       ├── controllers/
+│       │   ├── auth.controller.js
+│       │   ├── game.controller.js
+│       │   ├── analytics.controller.js
+│       │   ├── stats.controller.js
+│       │   ├── search.controller.js
+│       │   └── system.controller.js
+│       │
+│       ├── services/
+│       │   ├── auth.service.js
+│       │   ├── game.service.js
+│       │   ├── analytics.service.js
+│       │   ├── stats.service.js
+│       │   └── search.service.js
+│       │
+│       ├── models/
+│       │   ├── Game.js
+│       │   └── User.js
+│       │
+│       ├── routes/
+│       │   ├── auth.routes.js
+│       │   ├── game.routes.js
+│       │   ├── analytics.routes.js
+│       │   ├── stats.routes.js
+│       │   ├── search.routes.js
+│       │   └── protected.routes.js
+│       │
+│       ├── middlewares/
+│       │   ├── auth.middleware.js
+│       │   ├── error.middleware.js
+│       │   ├── logger.middleware.js
+│       │   ├── rateLimiter.middleware.js
+│       │   └── validate.middleware.js
+│       │
+│       ├── scripts/
+│       │   └── import-data.js
+│       │
+│       └── utils/
+│           ├── apiResponse.js
+│           ├── asyncHandler.js
+│           ├── pagination.js
+│           └── query.js
 ```
 
-## 📌 Features
+---
 
-### ✅ Core Backend Features
-- RESTful API architecture
-- MongoDB integration using Mongoose
-- MVC architecture
-- Modular and scalable backend structure
-- Environment variable configuration
+# ⚙️ Installation & Setup
 
-### ✅ CRUD Operations
+## 1️⃣ Clone Repository
 
-| Feature | Status |
-| :--- | :--- |
-| Create Game | ✅ |
-| Fetch All Games | ✅ |
-| Fetch Game By ID | ✅ |
-| Update Game | ✅ |
-| Delete Game | ✅ |
-
-### ✅ Advanced Query Features
-- Filtering
-- Searching
-- Pagination
-- Sorting
-- Dynamic query building
-
-### ✅ Authentication Features
-- User Registration
-- User Login
-- JWT Token Generation
-- Protected Routes
-- Password Hashing using bcrypt
-
-### ✅ Middleware Features
-- Authentication Middleware
-- Logger Middleware
-- Error Handling Middleware
-- Rate Limiting Middleware
-
-### ✅ Analytics & Aggregation
-- Game Statistics
-- Genre Analysis
-- Developer/Publisher Analysis
-- Aggregation Pipelines
-
-## 🗄️ Dataset Structure 
-
-```json
-{
-  "appid": "3057270",
-  "name": "Seafarer's Gambit",
-  "release_year": 2024,
-  "price": 3.99
-}
-```
-
-## ⚙️ Installation & Setup
-
-### 1️⃣ Clone Repository
 ```bash
 git clone <your-repository-url>
 ```
 
-### 2️⃣ Navigate to Project Directory
+## 2️⃣ Navigate to Project Folder
+
 ```bash
-cd project-name
+cd arcade-stream-backend
 ```
 
-### 3️⃣ Install Dependencies
+## 3️⃣ Install Dependencies
+
 ```bash
 npm install
 ```
 
-### 4️⃣ Configure Environment Variables
-Create a `.env` file in the root directory:
+## 4️⃣ Configure Environment Variables
+
+Create a `.env` file inside the server folder.
 
 ```env
-PORT=3000
+PORT=5000
+
 MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
+
+JWT_SECRET=your_jwt_secret_key
+
+JWT_REFRESH_SECRET=your_jwt_refresh_secret_key
+
+NODE_ENV=development
 ```
 
-### 5️⃣ Start Development Server
-**Development Mode**
+## 5️⃣ Run Development Server
+
 ```bash
 npm run dev
 ```
 
-**Production Mode**
-```bash
-npm start
+---
+
+# 🔐 Authentication System
+
+The project uses JWT-based authentication.
+
+## Authentication Features
+
+- User Registration
+- User Login
+- Password Hashing
+- JWT Token Generation
+- Protected Routes
+- Authorization Middleware
+
+---
+
+# 📊 Database Design
+
+## Main Collections
+
+### Games Collection
+
+Stores:
+
+- App ID
+- Game Name
+- Release Year
+- Price
+- Genres
+- Developers
+- Publishers
+- Ratings
+- Reviews
+- Supported Platforms
+
+### Users Collection
+
+Stores:
+
+- Authentication Data
+- User Roles
+- Profile Information
+- Saved Games
+- Preferences
+
+---
+
+# 📡 API Features
+
+## Game APIs
+
+- Fetch all games
+- Fetch single game
+- Create game
+- Update game
+- Delete game
+- Game analytics
+- Genre filtering
+- Price filtering
+
+## Search APIs
+
+- Search games
+- Search by title
+- Search by genre
+- Fuzzy search
+- Autocomplete
+
+## Analytics APIs
+
+- Genre distribution
+- Price analysis
+- Release year trends
+- Developer analytics
+- Publisher analytics
+
+## Statistics APIs
+
+- Total games count
+- Average game price
+- Most popular genres
+- Top developers
+
+---
+
+# 🔍 Advanced Functionalities
+
+## Filtering
+
+Supports:
+
+- Genre filtering
+- Price range filtering
+- Release year filtering
+- Free-to-play games
+- Developer filtering
+
+### Example
+
+```http
+GET /api/v1/games?genre=Action
 ```
 
-## 🔗 API Endpoints
+## Pagination
 
-### 📂 Core Game Routes
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| GET | `/api/v1/games` | Fetch all Steam games (supports pagination, filtering, sorting) |
-| GET | `/api/v1/games/:appid` | Fetch details of a specific game |
-| POST | `/api/v1/games` | Create a new game |
-| PATCH | `/api/v1/games/:appid` | Update game details |
-| DELETE | `/api/v1/games/:appid` | Delete a game |
+### Example
 
-### 🔍 Search & Filtering Examples
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| GET | `/api/v1/games?genre=action` | Filter by genre |
-| GET | `/api/v1/search/games?q=elden` | Search games by title |
-| GET | `/api/v1/games?page=1&limit=10` | Fetch paginated results |
-| GET | `/api/v1/games?sort=price` | Sort by price |
+```http
+GET /api/v1/games?page=1&limit=10
+```
 
-### 📊 Analytics & Stats
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| GET | `/api/v1/analytics/games/genre-distribution` | Analyze genre distribution |
-| GET | `/api/v1/stats/games/count` | Total game count |
+## Sorting
 
-### 🔐 Authentication
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| POST | `/api/v1/auth/register` | Register new user |
-| POST | `/api/v1/auth/login` | Login existing user |
+### Example
 
-## 🛡️ Security Features
+```http
+GET /api/v1/games?sort=price
+```
+
+```http
+GET /api/v1/games?sort=-release_year
+```
+
+## Search
+
+### Example
+
+```http
+GET /api/v1/search/games?q=elden
+```
+
+---
+
+# 🧩 Middleware System
+
+## Implemented Middlewares
+
+- Authentication Middleware
+- Error Handling Middleware
+- Logger Middleware
+- Request Validation Middleware
+- CORS Middleware
+- Rate Limiter Middleware
+
+---
+
+# 📈 Aggregation Pipelines
+
+MongoDB Aggregation Framework is used for:
+
+- Genre Distribution Analysis
+- Price Distribution
+- Developer Statistics
+- Publisher Statistics
+- Release Year Trends
+- Popular Games Analytics
+
+---
+
+# 🧪 API Testing
+
+API testing is done using **Postman**.
+
+## Postman Collection Includes
+
+- Authentication APIs
+- Game APIs
+- Search APIs
+- Analytics APIs
+- Statistics APIs
+
+---
+
+# 🛡️ Security Features
+
 - JWT Authentication
 - Password Hashing
 - Protected Routes
+- Environment Variable Protection
 - Input Validation
-- Global Error Handling
 - Rate Limiting
+- Secure Middleware Setup
 
-## ⚡ Middleware Used
+---
 
-| Middleware | Purpose |
-| :--- | :--- |
-| Authentication Middleware | Protect private routes |
-| Logger Middleware | Log incoming requests |
-| Error Handling Middleware | Handle application errors |
-| Rate Limiting Middleware | Prevent API abuse |
+# 🌐 Deployment
 
-## 📦 MongoDB Features Used
-- Schema Validation
-- Indexing
-- Aggregation Pipeline
-- Dynamic Querying
-- Pagination
-- Projection
-- Sorting
+Backend deployment target:
 
-## 🧪 API Testing
-API testing was performed using:
-- **Postman** (Postman collection is included in the project.)
+**Render**
 
-## 🧠 Learning Outcomes
+---
+
+# 📖 Environment Variables
+
+| Variable | Description |
+|-----------|------------|
+| PORT | Server Port |
+| MONGODB_URI | MongoDB Connection String |
+| JWT_SECRET | JWT Secret Key |
+| JWT_REFRESH_SECRET | Refresh Token Secret |
+| NODE_ENV | Environment Mode |
+
+---
+
+# 🧠 Learning Objectives
+
 This project demonstrates understanding of:
-- REST API Development
-- MongoDB & Mongoose
-- MVC Architecture
+
+- Backend Development
+- REST API Design
+- MongoDB Data Modeling
 - Authentication & Authorization
-- Middleware System
-- Aggregation Framework
-- Backend Scalability Concepts
+- MVC Architecture
+- Aggregation Pipelines
+- Middleware Design
 - Error Handling
 - API Optimization
+- Scalable Backend Structure
 
-## 🚀 Future Improvements
-- Swagger Documentation
+---
+
+# 📌 Future Improvements
+
 - Redis Caching
-- Docker Deployment
-- Unit Testing
-- CI/CD Integration
+- Swagger Documentation
+- Docker Support
+- WebSocket Integration
+- Advanced Recommendation Engine
+- AI-based Game Analytics
+- CI/CD Pipeline
 
-## 👨‍💻 Author & Contributor
-- **Anisha Chhajer**
+---
 
-Developed as part of the Full Stack Backend Project Assignment – 2026
+# 🤝 Contributing
+
+Contributions, suggestions, and improvements are welcome.
+
+### Steps
+
+1. Fork the repository
+2. Create a new branch
+3. Commit changes
+4. Push changes
+5. Create a Pull Request
+
+---
+
+# 📄 License
+
+This project is developed for educational and academic purposes.
+
+---
+
+# 👨‍💻 Author
+
+**Anisha Chhajer**
+
+GitHub: https://github.com/your-github-username
+
+---
+
+# ⭐ Project Status
+
+🚧 Backend Development In Progress | Steam Games Analytics & Management API 🎮
