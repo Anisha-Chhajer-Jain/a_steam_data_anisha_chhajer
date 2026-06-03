@@ -1,13 +1,8 @@
 // src/routes/gameFilter.route.js
 // ---------------------------------------------------------------------------
-// Filter routes for pre-defined game categories.
-//
-// These endpoints return paginated game lists filtered by a fixed criteria.
-//
-// Example:
-//   GET /api/v1/games/filter/free-to-play
-//   response: free-to-play games, page metadata
+// Filtering routes for discovering games with specific tags, categories, and prices.
 // ---------------------------------------------------------------------------
+
 const express = require("express");
 const router  = express.Router();
 
@@ -15,7 +10,7 @@ const Game                       = require("../models/Game");
 const { sendSuccess, sendError } = require("../utils/responseHandler");
 
 // Helper: run a MongoDB filter query with pagination
-const filtered = async (filter, req, res) => {
+const executeFilteredQuery = async (filter, req, res) => {
   try {
     const page  = parseInt(req.query.page,  10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
@@ -31,22 +26,53 @@ const filtered = async (filter, req, res) => {
   }
 };
 
-// ── Filter Endpoints ──────────────────────────────────────────────────────
+// ==========================================
+// 1. GET Routes (Filter Queries)
+// ==========================================
 
-router.get("/free-to-play",       (req, res) => filtered({ price: 0 },                                        req, res));
-router.get("/paid",               (req, res) => filtered({ price: { $gt: 0 } },                               req, res));
-router.get("/discounted",         (req, res) => filtered({ discounted: true },                                 req, res));
-router.get("/early-access",       (req, res) => filtered({ isEarlyAccess: true },                             req, res));
-router.get("/vr-only",            (req, res) => filtered({ isVROnly: true },                                  req, res));
-router.get("/controller-support", (req, res) => filtered({ categories: { $regex: /controller/i } },           req, res));
-router.get("/multiplayer",        (req, res) => filtered({ $or: [{ tags: "multiplayer" }, { categories: "Multiplayer" }] }, req, res));
-router.get("/singleplayer",       (req, res) => filtered({ categories: { $regex: /single-player/i } },        req, res));
-router.get("/coop",               (req, res) => filtered({ tags: "co-op" },                                   req, res));
-router.get("/open-world",         (req, res) => filtered({ tags: "open-world" },                              req, res));
-router.get("/survival",           (req, res) => filtered({ tags: "survival" },                                req, res));
-router.get("/horror",             (req, res) => filtered({ tags: "horror" },                                  req, res));
-router.get("/anime",              (req, res) => filtered({ tags: "anime" },                                   req, res));
-router.get("/indie",              (req, res) => filtered({ genres: "Indie" },                                 req, res));
-router.get("/top-rated",          (req, res) => filtered({ rating: { $gte: 8.5 } },                          req, res));
+// GET /api/v1/games/filter/free-to-play - Get games where price is 0
+router.get("/free-to-play", (req, res) => executeFilteredQuery({ price: 0 }, req, res));
+
+// GET /api/v1/games/filter/paid - Get games where price is greater than 0
+router.get("/paid", (req, res) => executeFilteredQuery({ price: { $gt: 0 } }, req, res));
+
+// GET /api/v1/games/filter/discounted - Get games currently marked with discounts
+router.get("/discounted", (req, res) => executeFilteredQuery({ discounted: true }, req, res));
+
+// GET /api/v1/games/filter/early-access - Get games currently in Early Access phase
+router.get("/early-access", (req, res) => executeFilteredQuery({ isEarlyAccess: true }, req, res));
+
+// GET /api/v1/games/filter/vr-only - Get games that are VR Only compatible
+router.get("/vr-only", (req, res) => executeFilteredQuery({ isVROnly: true }, req, res));
+
+// GET /api/v1/games/filter/controller-support - Get games featuring controller inputs support
+router.get("/controller-support", (req, res) => executeFilteredQuery({ categories: { $regex: /controller/i } }, req, res));
+
+// GET /api/v1/games/filter/multiplayer - Get multiplayer games (from tags or categories)
+router.get("/multiplayer", (req, res) => executeFilteredQuery({ $or: [{ tags: "multiplayer" }, { categories: "Multiplayer" }] }, req, res));
+
+// GET /api/v1/games/filter/singleplayer - Get single-player games
+router.get("/singleplayer", (req, res) => executeFilteredQuery({ categories: { $regex: /single-player/i } }, req, res));
+
+// GET /api/v1/games/filter/coop - Get co-op tagged games
+router.get("/coop", (req, res) => executeFilteredQuery({ tags: "co-op" }, req, res));
+
+// GET /api/v1/games/filter/open-world - Get open-world tagged games
+router.get("/open-world", (req, res) => executeFilteredQuery({ tags: "open-world" }, req, res));
+
+// GET /api/v1/games/filter/survival - Get survival tagged games
+router.get("/survival", (req, res) => executeFilteredQuery({ tags: "survival" }, req, res));
+
+// GET /api/v1/games/filter/horror - Get horror tagged games
+router.get("/horror", (req, res) => executeFilteredQuery({ tags: "horror" }, req, res));
+
+// GET /api/v1/games/filter/anime - Get anime tagged games
+router.get("/anime", (req, res) => executeFilteredQuery({ tags: "anime" }, req, res));
+
+// GET /api/v1/games/filter/indie - Get games belonging to the Indie genre
+router.get("/indie", (req, res) => executeFilteredQuery({ genres: "Indie" }, req, res));
+
+// GET /api/v1/games/filter/top-rated - Get games with ratings at or above 8.5
+router.get("/top-rated", (req, res) => executeFilteredQuery({ rating: { $gte: 8.5 } }, req, res));
 
 module.exports = router;

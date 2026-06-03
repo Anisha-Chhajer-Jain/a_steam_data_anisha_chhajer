@@ -1,13 +1,6 @@
 // src/routes/gameSearch.route.js
 // ---------------------------------------------------------------------------
-// Search routes for finding games with query text.
-//
-// Example:
-//   GET /api/v1/search/games?q=elden
-//   response: matching games and total count
-//
-// Request query:
-//   q: search term
+// Search routes for finding games using query text.
 // ---------------------------------------------------------------------------
 
 const express = require("express");
@@ -16,7 +9,11 @@ const router  = express.Router();
 const Game                       = require("../models/Game");
 const { sendSuccess, sendError } = require("../utils/responseHandler");
 
-// GET /api/v1/search/games?q=<term>
+// ==========================================
+// 1. GET Routes
+// ==========================================
+
+// GET /api/v1/search/games - Search active games by query term (?q=keyword)
 router.get("/games", async (req, res) => {
   try {
     const { q } = req.query;
