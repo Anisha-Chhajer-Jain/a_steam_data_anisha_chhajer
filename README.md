@@ -9,7 +9,7 @@ The project provides powerful CRUD operations, authentication, filtering, search
 # 📌 Project Information
 
 **Project Name:** Arcade Stream Backend API  
-**Repository:** *Your GitHub Repository URL*  
+**Repository:** *https://github.com/Anisha-Chhajer-Jain/a_steam_data_anisha_chhajer/tree/main*  
 **Backend Stack:** Node.js, Express.js, MongoDB, Mongoose  
 **Package Manager:** npm  
 **Deployment Target:** Render  
