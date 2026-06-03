@@ -1,27 +1,34 @@
 // src/routes/userRoutes.js
 // ---------------------------------------------------------------------------
 // User routes for account registration, login, and profile retrieval.
-//
-// Example:
-//   POST /api/v1/users/register
-//   body: { email, password, name }
-//   response: created user info
-//
-//   GET /api/v1/users/me
-//   header: Authorization: Bearer {{token}}
-//   response: current user profile
 // ---------------------------------------------------------------------------
-const express = require('express');
-const { registerUser, loginUser, getUserProfile } = require('../controllers/userController');
-const { protect } = require('../middleware/authMiddleware');
 
+const express = require('express');
 const router = express.Router();
 
-// Public auth routes
+const {
+  registerUser,
+  loginUser,
+  getUserProfile
+} = require('../controllers/userController');
+
+const { protect } = require('../middleware/authMiddleware');
+
+// ==========================================
+// 1. POST Routes (Auth & Registration)
+// ==========================================
+
+// POST /api/v1/users/register - Register a new user account
 router.post('/register', registerUser);
+
+// POST /api/v1/users/login - Authenticate credentials and get a session token
 router.post('/login', loginUser);
 
-// Protected user profile route
+// ==========================================
+// 2. GET Routes (User Details)
+// ==========================================
+
+// GET /api/v1/users/me - Get the currently authenticated user profile
 router.get('/me', protect, getUserProfile);
 
 module.exports = router;

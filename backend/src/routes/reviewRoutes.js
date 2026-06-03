@@ -1,42 +1,37 @@
 // src/routes/reviewRoutes.js
 // ---------------------------------------------------------------------------
-// Review routes mounted under /api/v1/games/:appid/reviews
+// Review routes mounted under "/api/v1/games/:appid/reviews".
 //
-// These endpoints allow clients to fetch reviews, create reviews, and get
+// These endpoints allow clients to fetch reviews, submit reviews, and get
 // aggregated review statistics for a specific game.
-//
-// Example:
-//   GET /api/v1/games/570/reviews
-//   response: [ review objects ]
-//
-//   POST /api/v1/games/570/reviews
-//   header: Authorization: Bearer {{token}}
-//   body: { rating, comment, recommend }
-//   response: created review object
-//
-//   GET /api/v1/games/570/reviews/stats
-//   response: review aggregation metrics
 // ---------------------------------------------------------------------------
+
 const express = require('express');
+const router = express.Router({ mergeParams: true }); // mergeParams lets us read :appid from the parent game router
+
 const {
   createReview,
   getReviewsForGame,
   getGameReviewStats
 } = require('../controllers/reviewController');
+
 const { protect } = require('../middleware/authMiddleware');
 
-// Use mergeParams so we can access appid parameter from the game router mount path
-const router = express.Router({ mergeParams: true });
+// ==========================================
+// 1. POST Routes
+// ==========================================
 
-// Routes:
-// GET /api/v1/games/:appid/reviews - Get reviews
-// POST /api/v1/games/:appid/reviews - Submit review (Authenticated Users)
-router
-  .route('/')
-  .get(getReviewsForGame)
-  .post(protect, createReview);
+// POST /api/v1/games/:appid/reviews - Submit a review for a game (Authenticated Users)
+router.post('/', protect, createReview);
 
-// GET /api/v1/games/:appid/reviews/stats - Get average ratings & recommendation metrics (Aggregation Pipeline)
+// ==========================================
+// 2. GET Routes (Ordered to prevent conflicts)
+// ==========================================
+
+// GET /api/v1/games/:appid/reviews/stats - Get aggregated rating & recommendation metrics
 router.get('/stats', getGameReviewStats);
+
+// GET /api/v1/games/:appid/reviews - Get reviews list for a specific game
+router.get('/', getReviewsForGame);
 
 module.exports = router;

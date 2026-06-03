@@ -1,17 +1,11 @@
 // src/routes/middleware.route.js
 // ---------------------------------------------------------------------------
-// Demo and practice routes for middleware, admin, and protected access.
+// Demo routes for practicing Express middlewares, authentication, and role authorization.
 //
-// These show how authentication, authorization, and error handling work.
-//
-// Example:
-//   GET /api/v1/middleware/logger
-//   response: middleware active message
-//
-//   POST /api/v1/protected/games
-//   header: Authorization: Bearer {{token}}
-//   body: { appid, name }
-//   response: created protected game entry
+// Mount locations:
+//   - /api/v1/middleware  => middlewareRouter
+//   - /api/v1/admin       => adminRouter
+//   - /api/v1/protected   => protectedRouter
 // ---------------------------------------------------------------------------
 
 const express = require("express");
@@ -24,25 +18,27 @@ const { protect, authorize } = require("../middleware/auth");
 const { sendSuccess, sendError } = require("../utils/responseHandler");
 
 // ===========================================================================
-// 1. Middleware Router (mounted on /api/v1/middleware)
+// SECTION 1: Middleware Demo Router (mounted on /api/v1/middleware)
 // ===========================================================================
 
-// GET /api/v1/middleware/logger
+// --- GET Routes ---
+
+// GET /api/v1/middleware/logger - Practice route demonstrating request logger middleware activity
 middlewareRouter.get("/logger", (req, res) => {
   return sendSuccess(res, { message: "Practice logger middleware. Logger is active and tracking calls." }, 200);
 });
 
-// GET /api/v1/middleware/auth
+// GET /api/v1/middleware/auth - Practice route verifying token-based protection middleware
 middlewareRouter.get("/auth", protect, (req, res) => {
   return sendSuccess(res, { message: "Practice authentication middleware. Verified successfully.", user: req.user }, 200);
 });
 
-// GET /api/v1/middleware/rate-limit
+// GET /api/v1/middleware/rate-limit - Practice route showing rate limiter activity details
 middlewareRouter.get("/rate-limit", (req, res) => {
   return sendSuccess(res, { message: "Practice rate-limit middleware. Active configuration is 100 requests per 15 minutes." }, 200);
 });
 
-// GET /api/v1/middleware/error-handler
+// GET /api/v1/middleware/error-handler - Practice route that triggers Express global error handling middleware
 middlewareRouter.get("/error-handler", (req, res, next) => {
   const err = new Error("Practice Global Error handling framework.");
   err.statusCode = 400;
@@ -51,30 +47,34 @@ middlewareRouter.get("/error-handler", (req, res, next) => {
 
 
 // ===========================================================================
-// 2. Admin Router (mounted on /api/v1/admin)
+// SECTION 2: Admin Panel Router (mounted on /api/v1/admin)
 // ===========================================================================
 
-// GET /api/v1/admin/games
+// --- GET Routes ---
+
+// GET /api/v1/admin/games - Get list of games (requires admin role authorization)
 adminRouter.get("/games", protect, authorize("admin"), (req, res) => {
   return sendSuccess(res, games, 200);
 });
 
-// GET /api/v1/admin/analytics
+// GET /api/v1/admin/analytics - Retrieve aggregate financial metrics (requires admin role authorization)
 adminRouter.get("/analytics", protect, authorize("admin"), (req, res) => {
   return sendSuccess(res, { totalDownloads: 1650000, revenueEstimation: 3950000 }, 200);
 });
 
-// GET /api/v1/admin/reports
+// GET /api/v1/admin/reports - Get latest system-generated PDF/CSV report listings (requires admin role authorization)
 adminRouter.get("/reports", protect, authorize("admin"), (req, res) => {
   return sendSuccess(res, { generatedReports: ["Wishlist Report May", "Popularity Distribution June"] }, 200);
 });
 
 
 // ===========================================================================
-// 3. Protected Router (mounted on /api/v1/protected)
+// SECTION 3: Protected Operations Router (mounted on /api/v1/protected)
 // ===========================================================================
 
-// POST /api/v1/protected/games
+// --- POST Routes ---
+
+// POST /api/v1/protected/games - Create a new game in memory dataStore (requires admin role authorization)
 protectedRouter.post("/games", protect, authorize("admin"), (req, res) => {
   const { appid, name } = req.body;
   if (!appid || !name) {
@@ -94,7 +94,9 @@ protectedRouter.post("/games", protect, authorize("admin"), (req, res) => {
   return sendSuccess(res, newGame, 201);
 });
 
-// PATCH /api/v1/protected/games/:appid
+// --- PATCH Routes ---
+
+// PATCH /api/v1/protected/games/:appid - Modify an in-memory game entry (requires admin role authorization)
 protectedRouter.patch("/games/:appid", protect, authorize("admin"), (req, res) => {
   const game = games.find(g => g.appid === req.params.appid);
   if (!game) {
@@ -104,7 +106,9 @@ protectedRouter.patch("/games/:appid", protect, authorize("admin"), (req, res) =
   return sendSuccess(res, game, 200);
 });
 
-// DELETE /api/v1/protected/games/:appid
+// --- DELETE Routes ---
+
+// DELETE /api/v1/protected/games/:appid - Permanently delete game from in-memory store (requires admin role authorization)
 protectedRouter.delete("/games/:appid", protect, authorize("admin"), (req, res) => {
   const index = games.findIndex(g => g.appid === req.params.appid);
   if (index === -1) {

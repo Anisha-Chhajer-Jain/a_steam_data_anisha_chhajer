@@ -1,92 +1,23 @@
 // src/routes/gameInfo.route.js
 // ---------------------------------------------------------------------------
-// Game info sub-routes that return media, review stats, and game metadata.
+// Game detail sub-routes (media, reviews, specs, and leaderboards).
 //
-// Example requests:
-//   GET /api/v1/games/:appid/screenshots
-//   response: [ screenshot URL strings ]
-//
-//   GET /api/v1/games/:appid/reviews
-//   response: [ review objects ]
-//
-//   POST /api/v1/games/:appid/reviews
-//   header: Authorization: Bearer {{token}}
-//   body: { rating, comment, recommend }
-//   response: created review object
-//
-//   GET /api/v1/games/:appid/system-requirements
-//   response: minimum and recommended specs
+// These endpoints are mounted on "/api/v1/games/:appid" and use { mergeParams: true }
+// to access the parent :appid route parameter.
 // ---------------------------------------------------------------------------
 
 const express = require("express");
-const router  = express.Router({ mergeParams: true }); // mergeParams lets us read :appid
+const router  = express.Router({ mergeParams: true });
 
 const { games, reviews }         = require("../store/dataStore");
 const { protect }                = require("../middleware/auth");
 const { sendSuccess, sendError } = require("../utils/responseHandler");
 
-// ── Screenshots ───────────────────────────────────────────────────────────
-router.get("/screenshots", (req, res) => {
-  const { appid } = req.params;
-  if (!games.some(g => g.appid === appid && !g.isDeleted))
-    return sendError(res, "Game not found", 404);
+// ==========================================
+// 1. POST Routes
+// ==========================================
 
-  const screenshots = [
-    `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/ss_1.jpg`,
-    `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/ss_2.jpg`,
-    `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/ss_3.jpg`
-  ];
-  return sendSuccess(res, screenshots, 200);
-});
-
-// ── Trailers ──────────────────────────────────────────────────────────────
-router.get("/trailers", (req, res) => {
-  const { appid } = req.params;
-  if (!games.some(g => g.appid === appid && !g.isDeleted))
-    return sendError(res, "Game not found", 404);
-
-  const trailers = [
-    {
-      id: "trailer_1",
-      name: "Official Gameplay Trailer",
-      url: `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/movie_max.mp4`,
-      thumbnail: `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/movie_600x337.jpg`
-    }
-  ];
-  return sendSuccess(res, trailers, 200);
-});
-
-// ── Review Stats ──────────────────────────────────────────────────────────
-router.get("/reviews/stats", (req, res) => {
-  const { appid } = req.params;
-  if (!games.some(g => g.appid === appid))
-    return sendError(res, "Game not found", 404);
-
-  const gameReviews = reviews.filter(r => r.gameAppid === appid);
-  if (gameReviews.length === 0)
-    return sendSuccess(res, { totalReviews: 0, avgRating: 0, recommendationRate: 0 }, 200);
-
-  const total       = gameReviews.length;
-  const sumRating   = gameReviews.reduce((sum, r) => sum + r.rating, 0);
-  const recommended = gameReviews.filter(r => r.recommend).length;
-
-  return sendSuccess(res, {
-    totalReviews:      total,
-    avgRating:         parseFloat((sumRating / total).toFixed(1)),
-    recommendationRate: Math.round((recommended / total) * 100)
-  }, 200);
-});
-
-// ── Fetch Reviews ─────────────────────────────────────────────────────────
-router.get("/reviews", (req, res) => {
-  const { appid } = req.params;
-  if (!games.some(g => g.appid === appid))
-    return sendError(res, "Game not found", 404);
-
-  return sendSuccess(res, reviews.filter(r => r.gameAppid === appid), 200);
-});
-
-// ── Add Review ────────────────────────────────────────────────────────────
+// POST /api/v1/games/:appid/reviews - Submit a review for a game (Authenticated Users)
 router.post("/reviews", protect, (req, res) => {
   const { appid } = req.params;
   const { rating, comment, recommend } = req.body;
@@ -110,38 +41,78 @@ router.post("/reviews", protect, (req, res) => {
   return sendSuccess(res, newReview, 201);
 });
 
-// ── Update Review ─────────────────────────────────────────────────────────
-router.patch("/reviews/:reviewId", protect, (req, res) => {
-  const { reviewId } = req.params;
-  const { rating, comment, recommend } = req.body;
+// ==========================================
+// 2. GET Routes
+// ==========================================
 
-  const review = reviews.find(r => r._id === reviewId);
-  if (!review) return sendError(res, "Review not found", 404);
-  if (review.user._id.toString() !== req.user._id.toString())
-    return sendError(res, "Not authorized to update this review", 403);
+// --- Media & Assets ---
 
-  if (rating    !== undefined) review.rating    = parseInt(rating, 10);
-  if (comment   !== undefined) review.comment   = comment;
-  if (recommend !== undefined) review.recommend = recommend;
+// GET /api/v1/games/:appid/screenshots - Get screenshot image URLs list
+router.get("/screenshots", (req, res) => {
+  const { appid } = req.params;
+  if (!games.some(g => g.appid === appid && !g.isDeleted))
+    return sendError(res, "Game not found", 404);
 
-  return sendSuccess(res, review, 200);
+  const screenshots = [
+    `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/ss_1.jpg`,
+    `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/ss_2.jpg`,
+    `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/ss_3.jpg`
+  ];
+  return sendSuccess(res, screenshots, 200);
 });
 
-// ── Delete Review ─────────────────────────────────────────────────────────
-router.delete("/reviews/:reviewId", protect, (req, res) => {
-  const { reviewId } = req.params;
-  const index = reviews.findIndex(r => r._id === reviewId);
-  if (index === -1) return sendError(res, "Review not found", 404);
+// GET /api/v1/games/:appid/trailers - Get trailers list
+router.get("/trailers", (req, res) => {
+  const { appid } = req.params;
+  if (!games.some(g => g.appid === appid && !g.isDeleted))
+    return sendError(res, "Game not found", 404);
 
-  const review = reviews[index];
-  if (review.user._id.toString() !== req.user._id.toString() && req.user.role !== "admin")
-    return sendError(res, "Not authorized to delete this review", 403);
-
-  reviews.splice(index, 1);
-  return sendSuccess(res, { message: "Review successfully deleted" }, 200);
+  const trailers = [
+    {
+      id: "trailer_1",
+      name: "Official Gameplay Trailer",
+      url: `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/movie_max.mp4`,
+      thumbnail: `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/movie_600x337.jpg`
+    }
+  ];
+  return sendSuccess(res, trailers, 200);
 });
 
-// ── System Requirements ───────────────────────────────────────────────────
+// --- Reviews & Stats ---
+
+// GET /api/v1/games/:appid/reviews/stats - Get aggregated review stats
+router.get("/reviews/stats", (req, res) => {
+  const { appid } = req.params;
+  if (!games.some(g => g.appid === appid))
+    return sendError(res, "Game not found", 404);
+
+  const gameReviews = reviews.filter(r => r.gameAppid === appid);
+  if (gameReviews.length === 0)
+    return sendSuccess(res, { totalReviews: 0, avgRating: 0, recommendationRate: 0 }, 200);
+
+  const total       = gameReviews.length;
+  const sumRating   = gameReviews.reduce((sum, r) => sum + r.rating, 0);
+  const recommended = gameReviews.filter(r => r.recommend).length;
+
+  return sendSuccess(res, {
+    totalReviews:      total,
+    avgRating:         parseFloat((sumRating / total).toFixed(1)),
+    recommendationRate: Math.round((recommended / total) * 100)
+  }, 200);
+});
+
+// GET /api/v1/games/:appid/reviews - Get reviews list for a game
+router.get("/reviews", (req, res) => {
+  const { appid } = req.params;
+  if (!games.some(g => g.appid === appid))
+    return sendError(res, "Game not found", 404);
+
+  return sendSuccess(res, reviews.filter(r => r.gameAppid === appid), 200);
+});
+
+// --- Specifications & Content ---
+
+// GET /api/v1/games/:appid/system-requirements - Get minimum & recommended requirements
 router.get("/system-requirements", (req, res) => {
   const { appid } = req.params;
   if (!games.some(g => g.appid === appid))
@@ -167,7 +138,7 @@ router.get("/system-requirements", (req, res) => {
   }, 200);
 });
 
-// ── DLC ───────────────────────────────────────────────────────────────────
+// GET /api/v1/games/:appid/dlc - Get downloadable content (DLC) list
 router.get("/dlc", (req, res) => {
   const { appid } = req.params;
   const game = games.find(g => g.appid === appid && !g.isDeleted);
@@ -179,7 +150,7 @@ router.get("/dlc", (req, res) => {
   ], 200);
 });
 
-// ── Achievements ──────────────────────────────────────────────────────────
+// GET /api/v1/games/:appid/achievements - Get achievements list
 router.get("/achievements", (req, res) => {
   const { appid } = req.params;
   if (!games.some(g => g.appid === appid))
@@ -203,7 +174,7 @@ router.get("/achievements", (req, res) => {
   ], 200);
 });
 
-// ── Leaderboards ──────────────────────────────────────────────────────────
+// GET /api/v1/games/:appid/leaderboards - Get rankings board
 router.get("/leaderboards", (req, res) => {
   const { appid } = req.params;
   if (!games.some(g => g.appid === appid))
@@ -216,7 +187,7 @@ router.get("/leaderboards", (req, res) => {
   ], 200);
 });
 
-// ── Latest Updates ────────────────────────────────────────────────────────
+// GET /api/v1/games/:appid/updates - Get update patch notes list
 router.get("/updates", (req, res) => {
   const { appid } = req.params;
   if (!games.some(g => g.appid === appid))
@@ -236,7 +207,7 @@ router.get("/updates", (req, res) => {
   ], 200);
 });
 
-// ── Game News ─────────────────────────────────────────────────────────────
+// GET /api/v1/games/:appid/news - Get publisher articles news feed
 router.get("/news", (req, res) => {
   const { appid } = req.params;
   const game = games.find(g => g.appid === appid && !g.isDeleted);
@@ -250,6 +221,45 @@ router.get("/news", (req, res) => {
       content: `The ultimate developer event has started! Play ${game.name} today and unlock limited seasonal achievements.`
     }
   ], 200);
+});
+
+// ==========================================
+// 3. PATCH Routes
+// ==========================================
+
+// PATCH /api/v1/games/:appid/reviews/:reviewId - Edit an existing review (Author only)
+router.patch("/reviews/:reviewId", protect, (req, res) => {
+  const { reviewId } = req.params;
+  const { rating, comment, recommend } = req.body;
+
+  const review = reviews.find(r => r._id === reviewId);
+  if (!review) return sendError(res, "Review not found", 404);
+  if (review.user._id.toString() !== req.user._id.toString())
+    return sendError(res, "Not authorized to update this review", 403);
+
+  if (rating    !== undefined) review.rating    = parseInt(rating, 10);
+  if (comment   !== undefined) review.comment   = comment;
+  if (recommend !== undefined) review.recommend = recommend;
+
+  return sendSuccess(res, review, 200);
+});
+
+// ==========================================
+// 4. DELETE Routes
+// ==========================================
+
+// DELETE /api/v1/games/:appid/reviews/:reviewId - Delete a review (Author or Admin)
+router.delete("/reviews/:reviewId", protect, (req, res) => {
+  const { reviewId } = req.params;
+  const index = reviews.findIndex(r => r._id === reviewId);
+  if (index === -1) return sendError(res, "Review not found", 404);
+
+  const review = reviews[index];
+  if (review.user._id.toString() !== req.user._id.toString() && req.user.role !== "admin")
+    return sendError(res, "Not authorized to delete this review", 403);
+
+  reviews.splice(index, 1);
+  return sendSuccess(res, { message: "Review successfully deleted" }, 200);
 });
 
 module.exports = router;
