@@ -58,6 +58,9 @@ app.use("/api/v1/games/sort", require("./routes/gameSort.route"));
 // C. Analytics routes (Mongoose database-backed, CommonJS)
 app.use("/api/v1/analytics", require("./routes/analytics.route"));
 
+// C2. Dashboard API routes
+app.use("/api/v1/dashboard", require("./routes/dashboard.route"));
+
 // D. Auth & JWT routes (/api/v1/auth/... and /api/v1/jwt/...)
 const { authRouter, jwtRouter } = require("./routes/auth.route");
 app.use("/api/v1/auth", authRouter);
