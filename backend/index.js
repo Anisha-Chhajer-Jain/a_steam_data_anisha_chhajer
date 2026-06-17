@@ -2,11 +2,11 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
-const { connectDB, isDbConnected } = require('./config/db');
+const { connectDB, isDbConnected } = require('./src/config/db');
 
-const loggerMiddleware = require('./middleware/loggerMiddleware');
-const errorMiddleware = require('./middleware/errorMiddleware');
-const { sendSuccess } = require('./utils/responseHandler');
+const loggerMiddleware = require('./src/middleware/loggerMiddleware');
+const errorMiddleware = require('./src/middleware/errorMiddleware');
+const { sendSuccess } = require('./src/utils/responseHandler');
 
 const app = express();
 
@@ -48,37 +48,37 @@ app.use(loggerMiddleware);
 // 3. Modular Routes (order-safe fall-through sequence)
 
 // A. Search Route (e.g. /api/v1/search/games?q=elden)
-app.use("/api/v1/search", require("./routes/gameSearch.route"));
+app.use("/api/v1/search", require("./src/routes/gameSearch.route"));
 
 // B. Specific filter, pagination, and sort routes
-app.use("/api/v1/games/filter", require("./routes/gameFilter.route"));
-app.use("/api/v1/games/paginate", require("./routes/gamePagination.route"));
-app.use("/api/v1/games/sort", require("./routes/gameSort.route"));
+app.use("/api/v1/games/filter", require("./src/routes/gameFilter.route"));
+app.use("/api/v1/games/paginate", require("./src/routes/gamePagination.route"));
+app.use("/api/v1/games/sort", require("./src/routes/gameSort.route"));
 
 // C. Analytics routes (Mongoose database-backed, CommonJS)
-app.use("/api/v1/analytics", require("./routes/analytics.route"));
+app.use("/api/v1/analytics", require("./src/routes/analytics.route"));
 
 // C2. Dashboard API routes
-app.use("/api/v1/dashboard", require("./routes/dashboard.route"));
+app.use("/api/v1/dashboard", require("./src/routes/dashboard.route"));
 
 // D. Auth & JWT routes (/api/v1/auth/... and /api/v1/jwt/...)
-const { authRouter, jwtRouter } = require("./routes/auth.route");
+const { authRouter, jwtRouter } = require("./src/routes/auth.route");
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/jwt", jwtRouter);
 
 // E. Middleware practice and admin/protected routes
-const { middlewareRouter, adminRouter, protectedRouter } = require("./routes/middleware.route");
+const { middlewareRouter, adminRouter, protectedRouter } = require("./src/routes/middleware.route");
 app.use("/api/v1/middleware", middlewareRouter);
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/protected", protectedRouter);
 
 // F. Advanced, notifications, and miscellaneous utility routes
-app.use("/api/v1", require("./routes/advanced.route"));
+app.use("/api/v1", require("./src/routes/advanced.route"));
 
 // G. Parameterized and dynamic CRUD routes (gameParam contains /genre/:genre etc.)
-app.use("/api/v1/games", require("./routes/gameParam.route"));
-app.use("/api/v1/games/:appid", require("./routes/gameInfo.route"));
-app.use("/api/v1/games", require("./routes/game.route"));
+app.use("/api/v1/games", require("./src/routes/gameParam.route"));
+app.use("/api/v1/games/:appid", require("./src/routes/gameInfo.route"));
+app.use("/api/v1/games", require("./src/routes/game.route"));
 
 // 4. Wildcard HEAD and OPTIONS Handlers (Fulfills Good to Have Routes dynamically)
 app.head('/*path', (req, res) => {
