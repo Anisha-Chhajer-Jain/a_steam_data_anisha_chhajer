@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-const API_BASE_URL = 'http://localhost:3000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://a-steam-data-anisha-chhajer.onrender.com/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

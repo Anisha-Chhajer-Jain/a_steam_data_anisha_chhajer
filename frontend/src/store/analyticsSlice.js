@@ -16,12 +16,12 @@ export const fetchAnalyticsData = createAsyncThunk('analytics/fetchData', async 
     return {
       success: true,
       data: {
-        totalGames: 1205, // fallback mock
+        totalGames: ordersCount.data?.data?.count || 1205,
         averagePrice: 29.99,
         averageRating: 8.4,
-        genreCount: 15,
+        genreCount: topCategories.data?.data?.length || 15,
         platformCount: 5,
-        genresData: [
+        genresData: topCategories.data?.data?.length ? topCategories.data.data : [
           { name: 'Action', value: 400 },
           { name: 'RPG', value: 300 },
           { name: 'Strategy', value: 300 },
