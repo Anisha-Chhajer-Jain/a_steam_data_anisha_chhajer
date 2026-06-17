@@ -13,9 +13,6 @@ const Game                       = require("../models/Game");
 const { protect, authorize }     = require("../middleware/auth");
 const { sendSuccess, sendError } = require("../utils/responseHandler");
 
-// ==========================================
-// 1. POST Routes
-// ==========================================
 
 // POST /api/v1/games - Create a new game (Admin only)
 router.post("/", protect, authorize("admin"), async (req, res) => {
@@ -56,9 +53,6 @@ router.post("/", protect, authorize("admin"), async (req, res) => {
   }
 });
 
-// ==========================================
-// 2. GET Routes (Ordered to prevent route conflicts)
-// ==========================================
 
 // GET /api/v1/games/exists/:appid - Check if a game exists (isDeleted is false)
 router.get("/exists/:appid", async (req, res) => {
