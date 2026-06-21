@@ -1,242 +1,403 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Grid, Paper, Stack, Button, IconButton, Chip, Divider, Fab, Avatar, CircularProgress } from '@mui/material';
-import axios from 'axios';
 import {
-  Storage, Group, Speed, PersonOutlined, CloudDoneOutlined,
-  ShieldOutlined, StayCurrentPortraitOutlined, Add as AddIcon
+  Box, Typography, Grid, Paper, Stack, Button,
+  IconButton, Chip, Divider, Avatar, CircularProgress, Tooltip,
+} from '@mui/material';
+import {
+  SportsEsportsOutlined, StarOutlined, AttachMoneyOutlined,
+  DevicesOutlined, PeopleOutlined, TrendingUpOutlined,
+  FileDownloadOutlined, CalendarTodayOutlined,
+  FiberManualRecordOutlined, AddCircleOutlined,
+  NotificationsOutlined,
 } from '@mui/icons-material';
 import { Helmet } from 'react-helmet-async';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchGames } from '../../store/gamesSlice';
+import { toast } from 'react-toastify';
 import {
-  AreaChart, Area, BarChart, Bar, ResponsiveContainer, YAxis
+  BarChart, Bar, ResponsiveContainer, XAxis, YAxis,
+  Tooltip as RechartTooltip, PieChart, Pie, Cell,
 } from 'recharts';
+import GameFormModal from '../../components/Games/GameFormModal';
 
-const userGrowthData = [
-  { day: 1, val: 10 }, { day: 2, val: 12 }, { day: 3, val: 15 }, { day: 4, val: 20 },
-  { day: 5, val: 25 }, { day: 6, val: 32 }, { day: 7, val: 36 }, { day: 8, val: 40 },
-  { day: 9, val: 55 }, { day: 10, val: 68 }, { day: 11, val: 78 }, { day: 12, val: 82 }, { day: 13, val: 80 }
+// ─── Static data ──────────────────────────────────────────────────────────────
+const releaseData = [
+  { year: '2019', v: 120 },
+  { year: '2020', v: 180 },
+  { year: '2021', v: 210 },
+  { year: '2022', v: 290 },
+  { year: '2023', v: 380 },
 ];
 
-const barDataServer = [{ v: 3 }, { v: 5 }, { v: 4 }, { v: 8 }, { v: 6 }, { v: 7 }];
-const barDataUsers = [{ v: 4 }, { v: 6 }, { v: 5 }, { v: 8 }, { v: 7 }, { v: 9 }];
-const barDataApi = [{ v: 6 }, { v: 4 }, { v: 3 }, { v: 5 }, { v: 4 }, { v: 3 }];
+const GENRE_COLORS = {
+  RPG: '#6c8fff', Action: '#00d4ff', Simulation: '#00e5a0',
+  Indie: '#ffb700', Adventure: '#ff4f6a', Strategy: '#a78bfa',
+};
 
-const securityLogs = [
-  { id: 1, title: 'New User Registered', subtitle: 'User ID: #7829 • 2 mins ago', icon: PersonOutlined, bg: 'rgba(108,143,255,0.1)' },
-  { id: 2, title: 'Database Backup Completed', subtitle: 'Shard-B • 15 mins ago', icon: CloudDoneOutlined, bg: 'rgba(0,212,255,0.1)' },
-  { id: 3, title: 'Unauthorized Login Attempt', subtitle: 'IP: 192.168.1.1 (Blocked) - 1h ago', icon: ShieldOutlined, bg: 'rgba(255,79,106,0.1)', color: '#ff4f6a' },
-  { id: 4, title: 'System Update Deployed', subtitle: 'Build v2.4.0-stable • 4h ago', icon: StayCurrentPortraitOutlined, bg: 'rgba(121,134,203,0.1)' },
+const recentActivity = [
+  { id: 1, Icon: AddCircleOutlined,     color: '#00e5a0', bg: 'rgba(0,229,160,0.1)',   title: 'New Game Added: StarField',       time: '4 hours ago' },
+  { id: 2, Icon: TrendingUpOutlined,    color: '#6c8fff', bg: 'rgba(108,143,255,0.1)', title: 'GTA V – BlitzStation 5',          time: '6 hours ago' },
+  { id: 3, Icon: NotificationsOutlined, color: '#ffb700', bg: 'rgba(255,183,0,0.1)',   title: 'Platform update deployed',        time: '1 day ago' },
+  { id: 4, Icon: PeopleOutlined,        color: '#00d4ff', bg: 'rgba(0,212,255,0.1)',   title: '1,200 new players onboarded',     time: '2 days ago' },
 ];
 
-// Removing mock topGames to fetch from API
+const STATUS_LABELS = ['TOP SELLER', 'TRENDING', 'NEW', 'FEATURED', 'HOT'];
+const STATUS_COLOR  = { 'TOP SELLER': '#00e5a0', TRENDING: '#00d4ff', NEW: '#a3c2ff', FEATURED: '#ffb700', HOT: '#ff4f6a' };
+const STATUS_BG     = { 'TOP SELLER': 'rgba(0,229,160,0.12)', TRENDING: 'rgba(0,212,255,0.12)', NEW: 'rgba(163,194,255,0.12)', FEATURED: 'rgba(255,183,0,0.12)', HOT: 'rgba(255,79,106,0.12)' };
 
-const CustomCard = ({ title, value, subtitle, icon: Icon, chartData, chartColor, isDot }) => (
-  <Paper sx={{ p: 2.5, bgcolor: '#161b27', borderRadius: 3, border: '1px solid rgba(255,255,255,0.05)' }}>
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-      <Box sx={{ flex: 1 }}>
-        <Typography variant="overline" sx={{ color: '#7986cb', fontSize: '0.65rem', fontWeight: 700, letterSpacing: 1 }}>
-          {title}
+// ─── Sub-components ───────────────────────────────────────────────────────────
+const StatCard = ({ label, value, delta, deltaPos, sub, accent }) => (
+  <Paper sx={{
+    p: 2, bgcolor: '#161b27', borderRadius: 2.5,
+    border: '1px solid rgba(255,255,255,0.05)', height: '100%',
+    position: 'relative', overflow: 'hidden',
+  }}>
+    <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, bgcolor: accent, borderRadius: '2px 2px 0 0', opacity: 0.8 }} />
+    <Typography sx={{ color: '#56637a', fontSize: '0.58rem', fontWeight: 700, letterSpacing: 1.4, textTransform: 'uppercase', mb: 0.5 }}>
+      {label}
+    </Typography>
+    <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75, mb: 0.25 }}>
+      <Typography sx={{ color: '#e8eaf6', fontWeight: 800, fontSize: '1.4rem', lineHeight: 1 }}>
+        {value}
+      </Typography>
+      {delta && (
+        <Typography sx={{ color: deltaPos ? '#00e5a0' : '#ff4f6a', fontWeight: 700, fontSize: '0.68rem' }}>
+          {deltaPos ? '+' : ''}{delta}
         </Typography>
-        <Typography variant="h4" sx={{ color: chartColor || '#e8eaf6', fontWeight: 600, mt: 0.5, mb: 0.5 }}>
-          {value}
-        </Typography>
-        <Typography variant="caption" sx={{ color: chartColor || '#7986cb', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          {isDot && <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#00d4ff' }} />}
-          {subtitle}
-        </Typography>
-      </Box>
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
-        <Icon sx={{ color: '#7986cb', fontSize: 20 }} />
-        {chartData && (
-          <Box sx={{ width: 60, height: 30 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <YAxis hide domain={[0, 10]} />
-                <Bar dataKey="v" fill={chartColor || '#7986cb'} radius={[2, 2, 0, 0]} barSize={4} />
-              </BarChart>
-            </ResponsiveContainer>
-          </Box>
-        )}
-      </Box>
+      )}
     </Box>
+    {sub && (
+      <Typography sx={{ color: '#3d4a60', fontSize: '0.68rem' }}>{sub}</Typography>
+    )}
   </Paper>
 );
 
+const BarTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <Box sx={{ bgcolor: '#1a2035', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 1.5, px: 1.5, py: 0.75 }}>
+      <Typography sx={{ color: '#a3c2ff', fontWeight: 700, fontSize: '0.75rem' }}>{label}</Typography>
+      <Typography sx={{ color: '#e8eaf6', fontWeight: 700, fontSize: '0.85rem' }}>{payload[0].value} releases</Typography>
+    </Box>
+  );
+};
+
+// Custom SVG center label rendered via Recharts `customized` on PieChart
+const DonutLabel = ({ viewBox, total }) => {
+  if (!viewBox) return null;
+  const { cx, cy } = viewBox;
+  return (
+    <g>
+      <text x={cx} y={cy - 6} textAnchor="middle" fill="#e8eaf6" fontSize="18" fontWeight="800">{total}</text>
+      <text x={cx} y={cy + 12} textAnchor="middle" fill="#56637a" fontSize="9" fontWeight="700" letterSpacing="1">TITLES</text>
+    </g>
+  );
+};
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
 const Dashboard = () => {
-  const [topGames, setTopGames] = useState([]);
-  const [loadingGames, setLoadingGames] = useState(true);
+  const navigate  = useNavigate();
+  const dispatch  = useDispatch();
+  const { gamesList, loading, pagination } = useSelector(s => s.games);
+  const [addOpen, setAddOpen] = useState(false);
 
   useEffect(() => {
-    const fetchTopGames = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/api/v1/dashboard/top-games');
-        if (response.data && response.data.success) {
-          setTopGames(response.data.data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch top games for dashboard', error);
-      } finally {
-        setLoadingGames(false);
-      }
-    };
-    fetchTopGames();
-  }, []);
+    dispatch(fetchGames({ page: 1, limit: 50, sort: 'rating' }));
+  }, [dispatch]);
+
+  // ── Derived stats ────────────────────────────────────────────────────────
+  const totalGames = pagination.total || gamesList.length || 245;
+  const avgRating  = gamesList.length
+    ? (gamesList.reduce((s, g) => s + parseFloat(g.rating || 0), 0) / gamesList.length).toFixed(1)
+    : '8.5';
+  const avgPrice = gamesList.length
+    ? `$${(gamesList.reduce((s, g) => s + parseFloat(g.price || 0), 0) / gamesList.length).toFixed(2)}`
+    : '$24.99';
+
+  const platformSet = new Set();
+  gamesList.forEach(g => (g.platforms || []).forEach(p => platformSet.add(p)));
+  const platformCount = platformSet.size || 5;
+
+  const devSet = new Set();
+  gamesList.forEach(g => { if (g.developer || g.publisher) devSet.add(g.developer || g.publisher); });
+  const devCount = devSet.size || 48;
+
+  // Genre donut data
+  const genreMap = {};
+  gamesList.forEach(g => (g.genres || []).forEach(genre => {
+    genreMap[genre] = (genreMap[genre] || 0) + 1;
+  }));
+  const genreData = Object.entries(genreMap).length
+    ? Object.entries(genreMap).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([name, value]) => ({ name, value }))
+    : [{ name: 'RPG', value: 40 }, { name: 'Action', value: 30 }, { name: 'Simulation', value: 30 }];
+  const donutTotal = genreData.reduce((s, d) => s + d.value, 0);
+
+  // Top rated
+  const topRated = [...gamesList]
+    .sort((a, b) => parseFloat(b.rating || 0) - parseFloat(a.rating || 0))
+    .slice(0, 5);
+
+  const fmtRating = (g) => {
+    const r = parseFloat(g.rating || 0);
+    return r > 10 ? (r / 10).toFixed(1) : r.toFixed(1);
+  };
 
   return (
-    <Box sx={{ pb: 8, bgcolor: '#0d1117', minHeight: '100vh', mx: -2, px: 2, pt: 2 }}>
-      <Helmet>
-        <title>GamerAnalytics Pro Dashboard</title>
-      </Helmet>
+    <Box sx={{ pb: 8, bgcolor: '#0d1117', minHeight: '100vh', mx: -2, px: 2.5, pt: 2.5 }}>
+      <Helmet><title>Dashboard – Arcade Stream Pro</title></Helmet>
 
-      <Grid container spacing={2}>
-        {/* TOP STAT CARDS */}
-        <Grid item xs={12} md={6} lg={3}>
-          <CustomCard title="SERVER LOAD" value="72%" subtitle="+2.4% vs prev hr" icon={Storage} chartData={barDataServer} />
-        </Grid>
-        <Grid item xs={12} md={6} lg={3}>
-          <CustomCard title="ACTIVE USERS" value="1,245" subtitle="Live Streaming" icon={Group} chartData={barDataUsers} chartColor="#00d4ff" />
-        </Grid>
-        <Grid item xs={12} md={6} lg={3}>
-          <CustomCard title="API LATENCY" value="42ms" subtitle="Optimal Performance" icon={Speed} chartData={barDataApi} chartColor="#ffb700" />
-        </Grid>
-        <Grid item xs={12} md={6} lg={3}>
-          <CustomCard title="DB HEALTH" value="Optimal" subtitle="ACTIVE" icon={Storage} isDot />
-          <Typography variant="caption" sx={{ color: '#7986cb', display: 'block', mt: -2, ml: 2.5 }}>Last sync 2m ago</Typography>
-        </Grid>
+      {/* ── Header ────────────────────────────────────────────────────────── */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+        <Box>
+          <Typography sx={{ color: '#e8eaf6', fontWeight: 800, fontSize: '1.3rem' }}>
+            Dashboard Overview
+          </Typography>
+          <Typography sx={{ color: '#56637a', fontSize: '0.73rem', mt: 0.25 }}>
+            Real-time gaming performance metrics and trends.
+          </Typography>
+        </Box>
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <Chip
+            icon={<CalendarTodayOutlined sx={{ fontSize: 12, color: '#69748c !important' }} />}
+            label="Last 30 Days"
+            size="small"
+            sx={{ bgcolor: '#161b27', color: '#7986cb', border: '1px solid rgba(255,255,255,0.07)', fontSize: '0.73rem', height: 28 }}
+          />
+          <Button
+            variant="contained" size="small"
+            startIcon={<FileDownloadOutlined sx={{ fontSize: 14 }} />}
+            onClick={() => { toast.info('Generating report…'); setTimeout(() => toast.success('Report ready!'), 1500); }}
+            sx={{
+              bgcolor: '#6c8fff', color: '#fff', fontWeight: 700,
+              textTransform: 'none', borderRadius: 1.5, px: 2, py: 0.6,
+              fontSize: '0.76rem', '&:hover': { bgcolor: '#5a7aee' },
+              boxShadow: '0 2px 12px rgba(108,143,255,0.4)',
+            }}
+          >
+            Export Report
+          </Button>
+        </Stack>
+      </Box>
 
-        {/* USER GROWTH CHART */}
-        <Grid item xs={12} lg={8}>
-          <Paper sx={{ p: 2.5, bgcolor: '#161b27', borderRadius: 3, border: '1px solid rgba(255,255,255,0.05)', height: '100%' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
+      {/* ── Stat Cards ────────────────────────────────────────────────────── */}
+      <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
+        {[
+          { label: 'TOTAL GAMES',  value: totalGames.toLocaleString(), delta: '+2.5K', deltaPos: true,  sub: 'In library',          accent: '#6c8fff' },
+          { label: 'AVG. RATING',  value: avgRating,                   delta: '+0.4K', deltaPos: true,  sub: '★★★★☆  Competitive',   accent: '#ffb700' },
+          { label: 'AVG. PRICE',   value: avgPrice,                    delta: '-5X',   deltaPos: false, sub: 'Market competitive',  accent: '#00e5a0' },
+          { label: 'TOTAL MONTHS', value: '12',                        delta: null,    deltaPos: true,  sub: 'Active seasons',      accent: '#00d4ff' },
+          { label: 'PLATFORMS',    value: platformCount,               delta: null,    deltaPos: true,  sub: 'PC · Console · More', accent: '#a3c2ff' },
+          { label: 'DEVELOPERS',   value: devCount,                    delta: '+8',    deltaPos: true,  sub: 'Active partners',     accent: '#ff4f6a' },
+        ].map((card, i) => (
+          <Grid size={{ xs: 6, sm: 4, md: 2 }} key={i}>
+            <StatCard {...card} />
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* ── Charts Row ────────────────────────────────────────────────────── */}
+      <Grid container spacing={2} sx={{ mb: 2.5 }}>
+        {/* Release Trends */}
+        <Grid size={{ xs: 12, md: 7 }}>
+          <Paper sx={{ p: 2.5, bgcolor: '#161b27', borderRadius: 2.5, border: '1px solid rgba(255,255,255,0.05)', height: '100%' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
               <Box>
-                <Typography variant="h6" sx={{ color: '#e8eaf6', fontWeight: 700, fontSize: '1rem' }}>User Growth</Typography>
-                <Typography variant="caption" sx={{ color: '#7986cb', display: 'block', mt: -0.5 }}>Network expansion<br/>over the last 30 days</Typography>
+                <Typography sx={{ color: '#e8eaf6', fontWeight: 700, fontSize: '0.92rem' }}>Release Trends</Typography>
+                <Typography sx={{ color: '#56637a', fontSize: '0.7rem', mt: 0.25 }}>Decade growth and projection</Typography>
               </Box>
-              <Box sx={{ display: 'flex', bgcolor: '#222836', borderRadius: 1 }}>
-                <Button size="small" sx={{ color: '#e8eaf6', minWidth: 40, px: 1, fontSize: '0.7rem' }}>30D</Button>
-                <Button size="small" sx={{ color: '#7986cb', minWidth: 40, px: 1, fontSize: '0.7rem' }}>90D</Button>
-              </Box>
+              <Chip
+                icon={<FiberManualRecordOutlined sx={{ fontSize: 9, color: '#6c8fff !important' }} />}
+                label="Releases"
+                size="small"
+                sx={{ bgcolor: 'rgba(108,143,255,0.1)', color: '#6c8fff', fontSize: '0.67rem', height: 22, border: '1px solid rgba(108,143,255,0.2)' }}
+              />
             </Box>
-            <Box sx={{ height: 120, width: '100%', mb: 2 }}>
+            <Box sx={{ height: 200 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={userGrowthData}>
-                  <defs>
-                    <linearGradient id="colorGrowth" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#4185f4" stopOpacity={0.5}/>
-                      <stop offset="95%" stopColor="#4185f4" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <YAxis hide domain={['dataMin - 10', 'dataMax + 10']} />
-                  <Area type="monotone" dataKey="val" stroke="#4185f4" strokeWidth={2} fillOpacity={1} fill="url(#colorGrowth)" />
-                </AreaChart>
+                <BarChart data={releaseData} barSize={38} margin={{ left: -20 }}>
+                  <XAxis dataKey="year" tick={{ fill: '#56637a', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis hide />
+                  <RechartTooltip content={<BarTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+                  <Bar dataKey="v" radius={[4, 4, 0, 0]}>
+                    {releaseData.map((_, i) => (
+                      <Cell key={i} fill={i === releaseData.length - 1 ? '#6c8fff' : '#1e2d50'} />
+                    ))}
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             </Box>
-            <Divider sx={{ borderColor: 'rgba(255,255,255,0.05)' }} />
           </Paper>
         </Grid>
 
-        {/* SECURITY LOG */}
-        <Grid item xs={12} lg={4}>
-          <Paper sx={{ p: 2.5, bgcolor: '#161b27', borderRadius: 3, border: '1px solid rgba(255,255,255,0.05)', height: '100%' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6" sx={{ color: '#e8eaf6', fontWeight: 700, fontSize: '1rem' }}>Security Log</Typography>
-              <Typography variant="caption" sx={{ color: '#6c8fff', fontWeight: 600, cursor: 'pointer' }}>View All</Typography>
-            </Box>
-            <Stack spacing={0}>
-              {securityLogs.map((log, index) => {
-                const Icon = log.icon;
-                return (
-                  <React.Fragment key={log.id}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 1.5 }}>
-                      <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: log.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Icon sx={{ fontSize: 18, color: log.color || '#7986cb' }} />
+        {/* Genre Distribution */}
+        <Grid size={{ xs: 12, md: 5 }}>
+          <Paper sx={{ p: 2.5, bgcolor: '#161b27', borderRadius: 2.5, border: '1px solid rgba(255,255,255,0.05)', height: '100%' }}>
+            <Typography sx={{ color: '#e8eaf6', fontWeight: 700, fontSize: '0.92rem', mb: 0.4 }}>Genre Distribution</Typography>
+            <Typography sx={{ color: '#56637a', fontSize: '0.7rem', mb: 1.5 }}>Market share by genre</Typography>
+
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+                <CircularProgress size={24} sx={{ color: '#6c8fff' }} />
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                {/* Donut */}
+                <Box sx={{ width: 148, height: 148, flexShrink: 0 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={genreData}
+                        cx="50%" cy="50%"
+                        innerRadius={46} outerRadius={65}
+                        dataKey="value"
+                        startAngle={90} endAngle={-270}
+                        paddingAngle={3}
+                        labelLine={false}
+                        label={false}
+                      >
+                        {genreData.map((entry, i) => (
+                          <Cell key={i} fill={GENRE_COLORS[entry.name] || '#7986cb'} />
+                        ))}
+                      </Pie>
+                      {/* Center text rendered as customized */}
+                      <text x="50%" y="47%" textAnchor="middle" dominantBaseline="middle" fill="#e8eaf6" fontSize="18" fontWeight="800">{donutTotal}</text>
+                      <text x="50%" y="58%" textAnchor="middle" dominantBaseline="middle" fill="#56637a" fontSize="9" fontWeight="700" letterSpacing="1">TITLES</text>
+                      <RechartTooltip
+                        formatter={(v, n) => [`${v} titles`, n]}
+                        contentStyle={{ background: '#1a2035', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 12 }}
+                        itemStyle={{ color: '#e8eaf6' }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Box>
+
+                {/* Legend */}
+                <Stack spacing={0.75} sx={{ flex: 1 }}>
+                  {genreData.slice(0, 6).map((g, i) => {
+                    const pct = donutTotal ? Math.round((g.value / donutTotal) * 100) : 0;
+                    const color = GENRE_COLORS[g.name] || '#7986cb';
+                    return (
+                      <Box key={i} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                          <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: color, flexShrink: 0 }} />
+                          <Typography sx={{ color: '#8b96a8', fontSize: '0.7rem' }}>{g.name}</Typography>
+                        </Box>
+                        <Typography sx={{ color: color, fontWeight: 700, fontSize: '0.7rem' }}>{pct}%</Typography>
                       </Box>
-                      <Box>
-                      <Typography variant="body2" sx={{ color: log.color || '#e8eaf6', fontSize: '0.8rem', fontWeight: 500 }}>{log.title}</Typography>
-                      <Typography variant="caption" sx={{ color: '#7986cb', display: 'block', fontSize: '0.65rem' }}>{log.subtitle}</Typography>
+                    );
+                  })}
+                </Stack>
+              </Box>
+            )}
+          </Paper>
+        </Grid>
+      </Grid>
+
+      {/* ── Bottom Row ────────────────────────────────────────────────────── */}
+      <Grid container spacing={2}>
+        {/* Top Rated Games */}
+        <Grid size={{ xs: 12, md: 7 }}>
+          <Paper sx={{ p: 2.5, bgcolor: '#161b27', borderRadius: 2.5, border: '1px solid rgba(255,255,255,0.05)' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+              <Typography sx={{ color: '#e8eaf6', fontWeight: 700, fontSize: '0.92rem' }}>Top Rated Games</Typography>
+              <Typography
+                onClick={() => navigate('/games')}
+                sx={{ color: '#6c8fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.73rem', '&:hover': { color: '#a3c2ff', textDecoration: 'underline' } }}
+              >
+                View All
+              </Typography>
+            </Box>
+
+            {/* Table header */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 1fr 2fr 1.5fr', px: 0.5, mb: 0.75 }}>
+              {['TITLE', 'SCORE', 'DEVELOPER', 'STATUS'].map(h => (
+                <Typography key={h} sx={{ color: '#3d4a60', fontSize: '0.58rem', fontWeight: 700, letterSpacing: 1.2, textTransform: 'uppercase' }}>
+                  {h}
+                </Typography>
+              ))}
+            </Box>
+            <Divider sx={{ borderColor: 'rgba(255,255,255,0.05)', mb: 0.5 }} />
+
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}>
+                <CircularProgress size={24} sx={{ color: '#6c8fff' }} />
+              </Box>
+            ) : (
+              <Stack>
+                {topRated.map((game, i) => {
+                  const statusKey = STATUS_LABELS[i % STATUS_LABELS.length];
+                  const dev = game.developer || game.publisher || 'FromSoftware';
+                  return (
+                    <React.Fragment key={game.appid}>
+                      <Box
+                        onClick={() => navigate('/games')}
+                        sx={{ display: 'grid', gridTemplateColumns: '2fr 1fr 2fr 1.5fr', alignItems: 'center', py: 1.25, px: 0.5, cursor: 'pointer', borderRadius: 1, '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' } }}
+                      >
+                        {/* Title */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                          <Avatar variant="rounded" sx={{ width: 28, height: 28, bgcolor: '#0d1117', border: '1px solid rgba(255,255,255,0.07)', fontSize: '0.6rem', color: '#a3c2ff', fontWeight: 800, flexShrink: 0 }}>
+                            {game.name ? game.name.substring(0, 2).toUpperCase() : '??'}
+                          </Avatar>
+                          <Typography sx={{ color: '#e8eaf6', fontWeight: 600, fontSize: '0.8rem' }} noWrap>
+                            {game.name}
+                          </Typography>
+                        </Box>
+                        {/* Score */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
+                          <StarOutlined sx={{ fontSize: 11, color: '#ffb700' }} />
+                          <Typography sx={{ color: '#e8eaf6', fontWeight: 700, fontSize: '0.78rem' }}>{fmtRating(game)}</Typography>
+                        </Box>
+                        {/* Developer */}
+                        <Typography sx={{ color: '#56637a', fontSize: '0.73rem' }} noWrap>{dev}</Typography>
+                        {/* Status */}
+                        <Chip
+                          label={statusKey}
+                          size="small"
+                          sx={{ bgcolor: STATUS_BG[statusKey], color: STATUS_COLOR[statusKey], fontSize: '0.57rem', fontWeight: 800, height: 19, borderRadius: 1, letterSpacing: 0.4, width: 'fit-content' }}
+                        />
+                      </Box>
+                      {i < topRated.length - 1 && <Divider sx={{ borderColor: 'rgba(255,255,255,0.04)' }} />}
+                    </React.Fragment>
+                  );
+                })}
+              </Stack>
+            )}
+          </Paper>
+        </Grid>
+
+        {/* Recent Activity */}
+        <Grid size={{ xs: 12, md: 5 }}>
+          <Paper sx={{ p: 2.5, bgcolor: '#161b27', borderRadius: 2.5, border: '1px solid rgba(255,255,255,0.05)', height: '100%' }}>
+            <Typography sx={{ color: '#e8eaf6', fontWeight: 700, fontSize: '0.92rem', mb: 2 }}>Recent Activity</Typography>
+            <Stack>
+              {recentActivity.map((item, i) => (
+                <React.Fragment key={item.id}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, py: 1.4 }}>
+                    <Box sx={{ width: 32, height: 32, borderRadius: 1.5, bgcolor: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <item.Icon sx={{ fontSize: 15, color: item.color }} />
+                    </Box>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography sx={{ color: '#c5cae9', fontSize: '0.78rem', fontWeight: 500, lineHeight: 1.4 }}>
+                        {item.title}
+                      </Typography>
+                      <Typography sx={{ color: '#3d4a60', fontSize: '0.66rem', mt: 0.25 }}>{item.time}</Typography>
                     </Box>
                   </Box>
-                  {index < securityLogs.length - 1 && <Divider sx={{ borderColor: 'rgba(255,255,255,0.05)' }} />}
+                  {i < recentActivity.length - 1 && <Divider sx={{ borderColor: 'rgba(255,255,255,0.04)' }} />}
                 </React.Fragment>
-                );
-              })}
-            </Stack>
-          </Paper>
-        </Grid>
-
-        {/* TOP PERFORMING GAMES */}
-        <Grid item xs={12}>
-          <Paper sx={{ p: 2.5, bgcolor: '#161b27', borderRadius: 3, border: '1px solid rgba(255,255,255,0.05)' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-              <Box>
-                <Typography variant="h6" sx={{ color: '#e8eaf6', fontWeight: 700, fontSize: '1rem' }}>Top Performing Games</Typography>
-                <Typography variant="caption" sx={{ color: '#7986cb', display: 'block', maxWidth: 200, mt: -0.5 }}>Revenue and growth metrics for the top 4 titles</Typography>
-              </Box>
-              <Button variant="contained" size="small" sx={{ bgcolor: '#a3c2ff', color: '#0d1117', fontWeight: 700, textTransform: 'none', borderRadius: 2, px: 2, py: 1, '&:hover': { bgcolor: '#8eb3ff' } }}>
-                Download Report
-              </Button>
-            </Box>
-
-            <Grid container sx={{ mb: 1 }}>
-              <Grid item xs={8}>
-                <Typography variant="overline" sx={{ color: '#7986cb', fontSize: '0.65rem', fontWeight: 700 }}>GAME NAME</Typography>
-              </Grid>
-              <Grid item xs={4}>
-                <Typography variant="overline" sx={{ color: '#7986cb', fontSize: '0.65rem', fontWeight: 700 }}>STATUS</Typography>
-              </Grid>
-            </Grid>
-            <Divider sx={{ borderColor: 'rgba(255,255,255,0.05)', mb: 1 }} />
-
-            <Stack spacing={0} sx={{ minHeight: 200, position: 'relative' }}>
-              {loadingGames ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
-                  <CircularProgress size={24} sx={{ color: '#6c8fff' }} />
-                </Box>
-              ) : topGames.length > 0 ? (
-                topGames.map((game, i) => (
-                  <React.Fragment key={game.id}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', py: 1.5 }}>
-                      <Grid container alignItems="center">
-                        <Grid item xs={8} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                          <Avatar variant="rounded" sx={{ width: 32, height: 32, bgcolor: '#1e2637', fontSize: '0.9rem', color: '#00d4ff', fontWeight: 800 }}>
-                            {game.initial}
-                          </Avatar>
-                          <Box>
-                            <Typography variant="body2" sx={{ color: '#e8eaf6', fontSize: '0.8rem', fontWeight: 700 }}>{game.name}</Typography>
-                            <Typography variant="caption" sx={{ color: '#7986cb', display: 'block', fontSize: '0.65rem' }}>{game.genre}</Typography>
-                          </Box>
-                        </Grid>
-                        <Grid item xs={4}>
-                          <Chip label={game.status} size="small" sx={{ bgcolor: game.bg, color: game.color, fontSize: '0.55rem', fontWeight: 800, height: 20, borderRadius: 1 }} />
-                        </Grid>
-                      </Grid>
-                    </Box>
-                    {i < topGames.length - 1 && <Divider sx={{ borderColor: 'rgba(255,255,255,0.05)' }} />}
-                  </React.Fragment>
-                ))
-              ) : (
-                <Box sx={{ py: 4, textAlign: 'center' }}>
-                  <Typography variant="body2" sx={{ color: '#7986cb' }}>No games found in the database.</Typography>
-                </Box>
-              )}
+              ))}
             </Stack>
           </Paper>
         </Grid>
       </Grid>
 
-      <Box sx={{ textAlign: 'center', mt: 4, mb: 2 }}>
-        <Typography variant="caption" sx={{ color: '#7986cb', display: 'block', mb: 1 }}>
-          © 2024 Arcade Stream Pro. All systems operational.
-        </Typography>
-        <Stack direction="row" spacing={3} justifyContent="center">
-          <Typography variant="caption" sx={{ color: '#e8eaf6', fontWeight: 600 }}>Terms of Service</Typography>
-          <Typography variant="caption" sx={{ color: '#e8eaf6', fontWeight: 600 }}>Support Portal</Typography>
-          <Typography variant="caption" sx={{ color: '#e8eaf6', fontWeight: 600 }}>API Docs</Typography>
-        </Stack>
-      </Box>
-
-      <Fab color="primary" sx={{ position: 'fixed', bottom: 20, right: 20, bgcolor: '#a3c2ff', color: '#0d1117', '&:hover': { bgcolor: '#8eb3ff' } }}>
-        <AddIcon />
-      </Fab>
+      <GameFormModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        editingGame={null}
+        onSuccess={() => { toast.success('Game added!'); setAddOpen(false); }}
+      />
     </Box>
   );
 };

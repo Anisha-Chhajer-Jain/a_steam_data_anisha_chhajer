@@ -4,7 +4,7 @@ import { Box, useTheme } from '@mui/material';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 
-const Layout = () => {
+const Layout = ({ children }) => {
   const theme = useTheme();
   return (
     <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', bgcolor: 'background.default' }}>
@@ -20,7 +20,7 @@ const Layout = () => {
             bgcolor: 'background.default',
           }}
         >
-          <Outlet />
+          {children || <Outlet />}
         </Box>
       </Box>
     </Box>

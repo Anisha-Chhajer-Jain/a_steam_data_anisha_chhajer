@@ -1,98 +1,136 @@
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
-  AppBar, Toolbar, IconButton, Typography, Box, Avatar, Menu,
-  MenuItem, ListItemIcon, ListItemText, Divider, Tooltip, useTheme
+  AppBar, Toolbar, IconButton, Box, InputBase, Typography, Tooltip, Divider
 } from '@mui/material';
 import {
-  Menu as MenuIcon, DarkMode, LightMode, Logout as LogoutIcon,
-  Person as PersonIcon, Settings as SettingsIcon, BarChart as LogoIcon,
-  Notifications as NotifIcon
+  Menu as MenuIcon,
+  Search as SearchIcon,
+  NotificationsNoneOutlined,
+  SettingsOutlined,
 } from '@mui/icons-material';
-import { toggleSidebar, toggleTheme } from '../../store/uiSlice';
-import { logout } from '../../store/authSlice';
-import { getInitials } from '../../utils/helpers';
+import { toggleSidebar } from '../../store/uiSlice';
 
 const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const theme = useTheme();
-  const { profile } = useSelector((state) => state.auth);
-  const { themeMode } = useSelector((state) => state.ui);
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [searchVal, setSearchVal] = useState('');
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
+  const location = useLocation();
+  const isAnalytics = location.pathname.includes('/analytics');
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Enter' && searchVal.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchVal.trim())}`);
+      setSearchVal('');
+    }
   };
 
   return (
-    <AppBar position="static" color="transparent" elevation={0}
-      sx={{ borderBottom: `1px solid ${theme.palette.divider}`, bgcolor: 'background.default' }}
+    <AppBar
+      position="static"
+      color="transparent"
+      elevation={0}
+      sx={{ bgcolor: '#0b0e17', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
     >
-      <Toolbar>
-        <IconButton edge="start" onClick={() => dispatch(toggleSidebar())}
-          sx={{ mr: 2, display: { md: 'none' }, color: 'text.secondary' }}>
+      <Toolbar
+        sx={{
+          minHeight: '60px !important',
+          px: { xs: 2, md: 3 },
+          display: 'flex',
+          justifyContent: 'space-between',
+          gap: 2,
+        }}
+      >
+        {/* Mobile menu toggle */}
+        <IconButton
+          edge="start"
+          onClick={() => dispatch(toggleSidebar())}
+          sx={{ display: { md: 'none' }, color: '#69748c', mr: 1 }}
+        >
           <MenuIcon />
         </IconButton>
 
-        <Box sx={{ display: { xs: 'flex', md: 'flex' }, alignItems: 'center', gap: 1, mr: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: 0.5, color: '#e8eaf6' }}>
-            GamerAnalytics Pro
-          </Typography>
-        </Box>
-
-        <Box sx={{ flexGrow: 1 }} />
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Tooltip title={`Switch to ${themeMode === 'dark' ? 'light' : 'dark'} mode`}>
-            <IconButton onClick={() => dispatch(toggleTheme())} sx={{ color: 'text.secondary' }}>
-              {themeMode === 'dark' ? <LightMode fontSize="small" /> : <DarkMode fontSize="small" />}
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip title="Notifications">
-            <IconButton sx={{ color: 'text.secondary', position: 'relative' }}>
-              <NotifIcon fontSize="small" />
-              {/* Red dot badge to match screenshot */}
-              <Box sx={{ position: 'absolute', top: 8, right: 8, width: 6, height: 6, bgcolor: '#ff4f6a', borderRadius: '50%' }} />
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip title="Account">
-            <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ ml: 0.5 }}>
-              <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.8rem', fontWeight: 700 }}>
-                {getInitials(profile?.name || profile?.email || 'U')}
-              </Avatar>
-            </IconButton>
-          </Tooltip>
-        </Box>
-
-        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}
-          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          PaperProps={{ sx: { bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', minWidth: 200, mt: 1 } }}
+        {/* Search Bar */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            bgcolor: '#161b27',
+            border: '1px solid rgba(255,255,255,0.06)',
+            borderRadius: 1.5,
+            px: 1.5,
+            py: 0.5,
+            width: { xs: '100%', md: 380 },
+            transition: 'border-color 0.2s',
+            '&:focus-within': { borderColor: 'rgba(163,194,255,0.4)' },
+          }}
         >
-          <Box sx={{ px: 2, py: 1.5 }}>
-            <Typography variant="body2" sx={{ fontWeight: 700 }}>{profile?.name || 'Operative'}</Typography>
-            <Typography variant="caption" color="textSecondary">{profile?.email || 'admin@arcade.stream'}</Typography>
+          <SearchIcon sx={{ color: '#56637a', fontSize: 17, mr: 1, flexShrink: 0 }} />
+          <InputBase
+            placeholder={isAnalytics ? "Search analytics models..." : "Search by ID, Name, or Publisher..."}
+            value={searchVal}
+            onChange={e => setSearchVal(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            sx={{ color: '#c5cae9', fontSize: '0.82rem', width: '100%' }}
+          />
+        </Box>
+
+        {/* Right side icons */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 'auto' }}>
+          {/* Notifications */}
+          <Tooltip title="Notifications">
+            <IconButton
+              onClick={() => navigate('/notifications')}
+              sx={{ color: '#8b96a8', position: 'relative', '&:hover': { color: '#e8eaf6' } }}
+            >
+              <NotificationsNoneOutlined sx={{ fontSize: 20 }} />
+              {/* Notification dot */}
+              <Box sx={{
+                position: 'absolute', top: 10, right: 10,
+                width: 6, height: 6,
+                bgcolor: '#a3c2ff', borderRadius: '50%',
+                border: '1.5px solid #0b0e17',
+              }} />
+            </IconButton>
+          </Tooltip>
+
+          {/* Settings */}
+          <Tooltip title="Settings">
+            <IconButton
+              onClick={() => navigate('/settings')}
+              sx={{ color: '#8b96a8', '&:hover': { color: '#e8eaf6' } }}
+            >
+              <SettingsOutlined sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Tooltip>
+
+          {/* Divider */}
+          <Divider
+            orientation="vertical"
+            flexItem
+            sx={{ borderColor: 'rgba(255,255,255,0.06)', mx: 1, my: 1.5 }}
+          />
+
+          {/* Status indicator */}
+          <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1 }}>
+            <Typography variant="caption" sx={{ color: '#56637a', fontSize: '0.65rem', fontWeight: 700, letterSpacing: 1 }}>
+              {isAnalytics ? 'NODE:' : 'STATUS:'}
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+              <Typography variant="caption" sx={{ color: '#e8eaf6', fontSize: '0.75rem', fontWeight: 700, lineHeight: 1 }}>
+                {isAnalytics ? 'US-EAST-1' : 'Server Live'}
+              </Typography>
+              <Box sx={{
+                width: 6, height: 6,
+                bgcolor: '#00e5a0',
+                borderRadius: '50%',
+                boxShadow: '0 0 6px rgba(0,229,160,0.5)',
+              }} />
+            </Box>
           </Box>
-          <Divider />
-          <MenuItem onClick={() => { setAnchorEl(null); navigate('/profile'); }}>
-            <ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon>
-            <ListItemText primary="Profile" />
-          </MenuItem>
-          <MenuItem onClick={() => { setAnchorEl(null); navigate('/settings'); }}>
-            <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
-            <ListItemText primary="Settings" />
-          </MenuItem>
-          <Divider />
-          <MenuItem onClick={handleLogout}>
-            <ListItemIcon><LogoutIcon fontSize="small" color="error" /></ListItemIcon>
-            <ListItemText primary="Logout" primaryTypographyProps={{ color: 'error' }} />
-          </MenuItem>
-        </Menu>
+        </Box>
       </Toolbar>
     </AppBar>
   );
