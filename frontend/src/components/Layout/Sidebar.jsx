@@ -16,6 +16,8 @@ import {
   SettingsOutlined,
   Logout,
   WorkspacePremiumOutlined,
+  DevicesOutlined,
+  StarBorderOutlined,
 } from '@mui/icons-material';
 import { toggleSidebar } from '../../store/uiSlice';
 import { logout } from '../../store/authSlice';

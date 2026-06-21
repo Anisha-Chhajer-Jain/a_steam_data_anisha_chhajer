@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar, Toolbar, IconButton, Box, InputBase, Typography, Tooltip, Divider
 } from '@mui/material';
