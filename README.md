@@ -1,4 +1,4 @@
-# 🎮 Arcade Stream Backend API
+# 🎮 Arcade Stream Backend API - A Stream Database(MERN) Platform
 
 A scalable and production-ready backend API built using **Node.js, Express.js, MongoDB, and Mongoose** for managing and analyzing the **Steam Games Dataset**.
 
@@ -20,10 +20,19 @@ The project provides powerful CRUD operations, authentication, filtering, search
 **Frontend Console:** [Arcade Stream Frontend](https://arcade-game-xi.vercel.app/dashboard)
 <!-- **Backend :** *Your Deployment URL*   -->
 **Postman Documentation:** [Arcade Stream Postman Docs](https://documenter.getpostman.com/view/50840681/2sBXwpMBLs)
+
 **Dataset:** https://drive.google.com/file/d/1mNxlDr1ZGAohCsFxMtZowDZln4i-ZRmi/view
 
 ---
 
+
+## 📌 Overview
+
+**Arcade Stream** is a backend application inspired by digital game distribution platforms like **Steam**, designed to provide a seamless game discovery and management experience. Similar to how users browse movies and TV shows on Netflix, Arcade Stream offers a **Netflix-like browsing experience for games**, allowing users to search, filter, sort, and explore a large collection of Steam games through fast and secure RESTful APIs.
+
+The API enables users to discover games based on genres, developers, publishers, release years, and price ranges while supporting efficient data retrieval through optimized database queries. It also leverages **MongoDB Aggregation Pipelines** to generate valuable insights, including genre distribution, average game prices, top developers, publisher statistics, and release year trends.
+
+---
 
 ## 🌐 What is the Problem?
 
