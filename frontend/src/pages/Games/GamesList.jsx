@@ -11,7 +11,7 @@ import {
 } from '@mui/icons-material';
 import { Helmet } from 'react-helmet-async';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchGames, setFilters, setPage, deleteGame } from '../../store/gamesSlice';
+import { fetchGames, setFilters, setPage, deleteGame } from '../../store';
 import { toast } from 'react-toastify';
 import GameFormModal from '../../components/Games/GameFormModal';
 

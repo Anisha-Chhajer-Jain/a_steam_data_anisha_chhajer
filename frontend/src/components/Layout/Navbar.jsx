@@ -10,7 +10,7 @@ import {
   NotificationsNoneOutlined,
   SettingsOutlined,
 } from '@mui/icons-material';
-import { toggleSidebar } from '../../store/uiSlice';
+import { toggleSidebar } from '../../store';
 
 const Navbar = () => {
   const dispatch = useDispatch();

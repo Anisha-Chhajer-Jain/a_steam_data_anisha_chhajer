@@ -3,11 +3,12 @@ import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, Ta
 import { Edit, Delete, Add } from '@mui/icons-material';
 import { Helmet } from 'react-helmet-async';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchGames } from '../../store/gamesSlice';
+import { fetchGames } from '../../store';
 
 const GameManagement = () => {
   const dispatch = useDispatch();
-  const { gamesList, loading, totalPages } = useSelector(s => s.games);
+  const { gamesList, loading, pagination } = useSelector(s => s.games);
+  const totalPages = pagination?.pages || 1;
   const [page, setPage] = useState(1);
 
   useEffect(() => { dispatch(fetchGames({ page, limit: 10 })); }, [dispatch, page]);

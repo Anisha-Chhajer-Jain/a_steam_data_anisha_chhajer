@@ -12,7 +12,7 @@ import {
   BarChart as LogoIcon, ArrowForward, ShieldOutlined
 } from '@mui/icons-material';
 import { Helmet } from 'react-helmet-async';
-import { loginUser } from '../../store/authSlice';
+import { loginUser } from '../../store';
 import { toast } from 'react-toastify';
 
 const Login = () => {
@@ -30,7 +30,7 @@ const Login = () => {
       password: Yup.string().required('Required'),
     }),
     onSubmit: async (values) => {
-      const result = await dispatch(loginUser({ userId: values.email }));
+      const result = await dispatch(loginUser({ userId: values.email, email: values.email, password: values.password }));
       if (loginUser.fulfilled.match(result)) {
         toast.success('Access granted. Welcome back.');
         navigate('/dashboard');

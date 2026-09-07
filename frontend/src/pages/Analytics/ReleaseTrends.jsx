@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Box, Typography, Grid, Paper } from '@mui/material';
 import { Helmet } from 'react-helmet-async';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAnalyticsData } from '../../store/analyticsSlice';
+import { fetchAnalyticsData } from '../../store';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Skeleton } from '@mui/material';
 

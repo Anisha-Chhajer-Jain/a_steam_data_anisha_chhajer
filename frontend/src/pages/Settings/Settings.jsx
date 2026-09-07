@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import { DarkMode, LightMode, Palette, Language, Save } from '@mui/icons-material';
 import { Helmet } from 'react-helmet-async';
-import { toggleTheme, setTheme } from '../../store/uiSlice';
+import { toggleTheme, setTheme } from '../../store';
 import { toast } from 'react-toastify';
 import { savePreferences, getStoredPreferences } from '../../utils/helpers';
 

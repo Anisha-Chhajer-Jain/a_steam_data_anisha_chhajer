@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Box, Typography, Grid, Paper, Skeleton } from '@mui/material';
 import { Helmet } from 'react-helmet-async';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAnalyticsData } from '../../store/analyticsSlice';
+import { fetchAnalyticsData } from '../../store';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const COLORS = ['#6c8fff', '#00e5a0', '#ffb700', '#ff4f6a'];

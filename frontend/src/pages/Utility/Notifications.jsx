@@ -3,7 +3,7 @@ import { Box, Typography, List, ListItem, ListItemIcon, ListItemText, Paper, But
 import { Notifications as NotifIcon, Info, CheckCircle, Warning, Delete, DoneAll } from '@mui/icons-material';
 import { Helmet } from 'react-helmet-async';
 import { useDispatch, useSelector } from 'react-redux';
-import { markAsRead, markAllAsRead, deleteNotification } from '../../store/notificationsSlice';
+import { markAsRead, markAllAsRead, deleteNotification } from '../../store';
 
 const typeConfig = {
   info: { icon: <Info />, color: '#6c8fff', bg: 'rgba(108,143,255,0.1)' },

@@ -1,64 +1,575 @@
+// scripts/seed.js
+// -------------------------------------------------------------
+// Database seeder script to populate MongoDB with:
+// 1. Initial admin & demo users
+// 2. 35+ realistic Steam games across various genres
+// 3. Sample reviews for games
+// Run with: `npm run seed` or `node scripts/seed.js`
+// -------------------------------------------------------------
+
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const fs = require('fs');
-const path = require('path');
-const Game = require('../src/models/Game');
-const connectDB = require('../src/config/db');
+const bcrypt = require('bcryptjs');
 
-// Load env vars
-dotenv.config({ path: path.join(__dirname, '../.env') });
+const connectDB = require('../config/db');
+const Game = require('../models/Game');
+const User = require('../models/User');
+const Review = require('../models/Review');
 
-// Connect to DB
-connectDB();
+const initialGames = [
+  {
+    appid: '1091500',
+    name: 'Cyberpunk 2077',
+    developer: 'CD PROJEKT RED',
+    publisher: 'CD PROJEKT RED',
+    price: 59.99,
+    rating: 9.1,
+    release_year: 2020,
+    release_date: 'Dec 10, 2020',
+    genres: ['RPG', 'Action', 'Sci-Fi'],
+    categories: ['Single-player', 'Full controller support'],
+    platforms: ['windows', 'ps5', 'xbox'],
+    recommendations: 580000,
+  },
+  {
+    appid: '1245620',
+    name: 'Elden Ring',
+    developer: 'FromSoftware Inc.',
+    publisher: 'Bandai Namco Entertainment',
+    price: 59.99,
+    rating: 9.6,
+    release_year: 2022,
+    release_date: 'Feb 25, 2022',
+    genres: ['RPG', 'Action', 'Dark Fantasy'],
+    categories: ['Single-player', 'Multi-player', 'PvP'],
+    platforms: ['windows', 'ps5', 'xbox'],
+    recommendations: 720000,
+  },
+  {
+    appid: '1145360',
+    name: 'Hades',
+    developer: 'Supergiant Games',
+    publisher: 'Supergiant Games',
+    price: 24.99,
+    rating: 9.8,
+    release_year: 2020,
+    release_date: 'Sep 17, 2020',
+    genres: ['Indie', 'Action', 'Roguelike'],
+    categories: ['Single-player', 'Steam Achievements'],
+    platforms: ['windows', 'mac', 'switch'],
+    recommendations: 240000,
+  },
+  {
+    appid: '271590',
+    name: 'Grand Theft Auto V',
+    developer: 'Rockstar North',
+    publisher: 'Rockstar Games',
+    price: 29.99,
+    rating: 8.9,
+    release_year: 2015,
+    release_date: 'Apr 14, 2015',
+    genres: ['Action', 'Adventure'],
+    categories: ['Single-player', 'Multi-player', 'Online PvP'],
+    platforms: ['windows', 'ps5', 'xbox'],
+    recommendations: 1400000,
+  },
+  {
+    appid: '1716740',
+    name: 'Starfield',
+    developer: 'Bethesda Game Studios',
+    publisher: 'Bethesda Softworks',
+    price: 69.99,
+    rating: 7.2,
+    release_year: 2023,
+    release_date: 'Sep 6, 2023',
+    genres: ['RPG', 'Action', 'Sci-Fi'],
+    categories: ['Single-player', 'Cloud Gaming'],
+    platforms: ['windows', 'xbox'],
+    recommendations: 120000,
+  },
+  {
+    appid: '1086940',
+    name: "Baldur's Gate 3",
+    developer: 'Larian Studios',
+    publisher: 'Larian Studios',
+    price: 59.99,
+    rating: 9.7,
+    release_year: 2023,
+    release_date: 'Aug 3, 2023',
+    genres: ['RPG', 'Strategy', 'Adventure'],
+    categories: ['Single-player', 'Co-op', 'Multi-player'],
+    platforms: ['windows', 'mac', 'ps5', 'xbox'],
+    recommendations: 550000,
+  },
+  {
+    appid: '814380',
+    name: 'Sekiro: Shadows Die Twice',
+    developer: 'FromSoftware Inc.',
+    publisher: 'Activision',
+    price: 59.99,
+    rating: 9.5,
+    release_year: 2019,
+    release_date: 'Mar 22, 2019',
+    genres: ['Action', 'Adventure', 'Soulslike'],
+    categories: ['Single-player', 'Steam Achievements'],
+    platforms: ['windows'],
+    recommendations: 260000,
+  },
+  {
+    appid: '1817070',
+    name: "Marvel's Spider-Man Remastered",
+    developer: 'Insomniac Games',
+    publisher: 'PlayStation Publishing',
+    price: 59.99,
+    rating: 9.3,
+    release_year: 2022,
+    release_date: 'Aug 12, 2022',
+    genres: ['Action', 'Adventure'],
+    categories: ['Single-player', 'Full controller support'],
+    platforms: ['windows'],
+    recommendations: 82000,
+  },
+  {
+    appid: '730',
+    name: 'Counter-Strike 2',
+    developer: 'Valve',
+    publisher: 'Valve',
+    price: 0.0,
+    rating: 8.8,
+    release_year: 2023,
+    release_date: 'Sep 27, 2023',
+    genres: ['Action', 'Tactical FPS', 'Shooter'],
+    categories: ['Multi-player', 'Cross-Platform', 'PvP'],
+    platforms: ['windows', 'linux'],
+    recommendations: 3900000,
+  },
+  {
+    appid: '570',
+    name: 'Dota 2',
+    developer: 'Valve',
+    publisher: 'Valve',
+    price: 0.0,
+    rating: 8.4,
+    release_year: 2013,
+    release_date: 'Jul 9, 2013',
+    genres: ['Strategy', 'Action', 'MOBA'],
+    categories: ['Multi-player', 'Co-op', 'PvP'],
+    platforms: ['windows', 'mac', 'linux'],
+    recommendations: 2100000,
+  },
+  {
+    appid: '1938090',
+    name: 'Call of Duty: Warzone',
+    developer: 'Infinity Ward',
+    publisher: 'Activision',
+    price: 0.0,
+    rating: 7.6,
+    release_year: 2022,
+    release_date: 'Nov 16, 2022',
+    genres: ['Action', 'Shooter', 'Battle Royale'],
+    categories: ['Multi-player', 'Online PvP'],
+    platforms: ['windows', 'ps5', 'xbox'],
+    recommendations: 190000,
+  },
+  {
+    appid: '1172470',
+    name: 'Apex Legends',
+    developer: 'Respawn Entertainment',
+    publisher: 'Electronic Arts',
+    price: 0.0,
+    rating: 8.6,
+    release_year: 2020,
+    release_date: 'Nov 4, 2020',
+    genres: ['Action', 'Free to Play', 'Shooter'],
+    categories: ['Multi-player', 'Cross-Platform'],
+    platforms: ['windows', 'ps5', 'xbox', 'switch'],
+    recommendations: 640000,
+  },
+  {
+    appid: '413150',
+    name: 'Stardew Valley',
+    developer: 'ConcernedApe',
+    publisher: 'ConcernedApe',
+    price: 14.99,
+    rating: 9.8,
+    release_year: 2016,
+    release_date: 'Feb 26, 2016',
+    genres: ['Indie', 'Simulation', 'RPG'],
+    categories: ['Single-player', 'Multi-player', 'Co-op'],
+    platforms: ['windows', 'mac', 'linux', 'switch'],
+    recommendations: 550000,
+  },
+  {
+    appid: '105600',
+    name: 'Terraria',
+    developer: 'Re-Logic',
+    publisher: 'Re-Logic',
+    price: 9.99,
+    rating: 9.7,
+    release_year: 2011,
+    release_date: 'May 16, 2011',
+    genres: ['Indie', 'Adventure', 'Action', 'RPG'],
+    categories: ['Single-player', 'Multi-player', 'Co-op'],
+    platforms: ['windows', 'mac', 'linux'],
+    recommendations: 1100000,
+  },
+  {
+    appid: '367520',
+    name: 'Hollow Knight',
+    developer: 'Team Cherry',
+    publisher: 'Team Cherry',
+    price: 14.99,
+    rating: 9.7,
+    release_year: 2017,
+    release_date: 'Feb 24, 2017',
+    genres: ['Indie', 'Action', 'Metroidvania'],
+    categories: ['Single-player', 'Steam Achievements'],
+    platforms: ['windows', 'mac', 'linux', 'switch'],
+    recommendations: 310000,
+  },
+  {
+    appid: '1551360',
+    name: 'Forza Horizon 5',
+    developer: 'Playground Games',
+    publisher: 'Xbox Game Studios',
+    price: 59.99,
+    rating: 8.9,
+    release_year: 2021,
+    release_date: 'Nov 9, 2021',
+    genres: ['Racing', 'Adventure', 'Simulation'],
+    categories: ['Single-player', 'Multi-player', 'PvP'],
+    platforms: ['windows', 'xbox'],
+    recommendations: 160000,
+  },
+  {
+    appid: '1158310',
+    name: 'Crusader Kings III',
+    developer: 'Paradox Development Studio',
+    publisher: 'Paradox Interactive',
+    price: 49.99,
+    rating: 9.2,
+    release_year: 2020,
+    release_date: 'Sep 1, 2020',
+    genres: ['Strategy', 'RPG', 'Simulation'],
+    categories: ['Single-player', 'Multi-player'],
+    platforms: ['windows', 'mac', 'linux'],
+    recommendations: 95000,
+  },
+  {
+    appid: '289070',
+    name: "Sid Meier's Civilization VI",
+    developer: 'Firaxis Games',
+    publisher: '2K',
+    price: 59.99,
+    rating: 8.5,
+    release_year: 2016,
+    release_date: 'Oct 21, 2016',
+    genres: ['Strategy', 'Simulation'],
+    categories: ['Single-player', 'Multi-player', 'Turn-based'],
+    platforms: ['windows', 'mac', 'linux'],
+    recommendations: 230000,
+  },
+  {
+    appid: '2358720',
+    name: 'Black Myth: Wukong',
+    developer: 'Game Science',
+    publisher: 'Game Science',
+    price: 59.99,
+    rating: 9.6,
+    release_year: 2024,
+    release_date: 'Aug 20, 2024',
+    genres: ['Action', 'RPG', 'Adventure'],
+    categories: ['Single-player', 'Steam Achievements'],
+    platforms: ['windows', 'ps5'],
+    recommendations: 750000,
+  },
+  {
+    appid: '2050650',
+    name: 'Resident Evil 4',
+    developer: 'CAPCOM Co., Ltd.',
+    publisher: 'CAPCOM Co., Ltd.',
+    price: 39.99,
+    rating: 9.5,
+    release_year: 2023,
+    release_date: 'Mar 24, 2023',
+    genres: ['Action', 'Adventure', 'Horror'],
+    categories: ['Single-player', 'Steam Cloud'],
+    platforms: ['windows', 'ps5', 'xbox'],
+    recommendations: 105000,
+  },
+  {
+    appid: '1446780',
+    name: 'MONSTER HUNTER RISE',
+    developer: 'CAPCOM Co., Ltd.',
+    publisher: 'CAPCOM Co., Ltd.',
+    price: 39.99,
+    rating: 8.7,
+    release_year: 2022,
+    release_date: 'Jan 12, 2022',
+    genres: ['Action', 'RPG', 'Adventure'],
+    categories: ['Single-player', 'Multi-player', 'Co-op'],
+    platforms: ['windows', 'switch'],
+    recommendations: 64000,
+  },
+  {
+    appid: '2246340',
+    name: 'Frostpunk 2',
+    developer: '11 bit studios',
+    publisher: '11 bit studios',
+    price: 44.99,
+    rating: 8.4,
+    release_year: 2024,
+    release_date: 'Sep 20, 2024',
+    genres: ['Strategy', 'Simulation', 'City Builder'],
+    categories: ['Single-player'],
+    platforms: ['windows'],
+    recommendations: 18000,
+  },
+  {
+    appid: '1364780',
+    name: 'Street Fighter 6',
+    developer: 'CAPCOM Co., Ltd.',
+    publisher: 'CAPCOM Co., Ltd.',
+    price: 59.99,
+    rating: 8.9,
+    release_year: 2023,
+    release_date: 'Jun 2, 2023',
+    genres: ['Action', 'Fighting', 'Sports'],
+    categories: ['Single-player', 'Multi-player', 'PvP'],
+    platforms: ['windows', 'ps5', 'xbox'],
+    recommendations: 32000,
+  },
+  {
+    appid: '1240440',
+    name: 'Halo Infinite',
+    developer: '343 Industries',
+    publisher: 'Xbox Game Studios',
+    price: 0.0,
+    rating: 7.5,
+    release_year: 2021,
+    release_date: 'Nov 15, 2021',
+    genres: ['Action', 'Free to Play', 'Shooter'],
+    categories: ['Single-player', 'Multi-player', 'PvP'],
+    platforms: ['windows', 'xbox'],
+    recommendations: 175000,
+  },
+  {
+    appid: '2420110',
+    name: 'Horizon Forbidden West Complete Edition',
+    developer: 'Guerrilla',
+    publisher: 'PlayStation Publishing',
+    price: 59.99,
+    rating: 9.0,
+    release_year: 2024,
+    release_date: 'Mar 21, 2024',
+    genres: ['Action', 'RPG', 'Adventure'],
+    categories: ['Single-player', 'Controller support'],
+    platforms: ['windows'],
+    recommendations: 28000,
+  },
+  {
+    appid: '1238810',
+    name: 'Battlefield 2042',
+    developer: 'DICE',
+    publisher: 'Electronic Arts',
+    price: 59.99,
+    rating: 6.8,
+    release_year: 2021,
+    release_date: 'Nov 19, 2021',
+    genres: ['Action', 'Shooter', 'Tactical FPS'],
+    categories: ['Multi-player', 'Online PvP'],
+    platforms: ['windows', 'ps5', 'xbox'],
+    recommendations: 180000,
+  },
+  {
+    appid: '1623730',
+    name: 'Palworld',
+    developer: 'Pocketpair',
+    publisher: 'Pocketpair',
+    price: 29.99,
+    rating: 9.3,
+    release_year: 2024,
+    release_date: 'Jan 19, 2024',
+    genres: ['Adventure', 'Indie', 'RPG', 'Survival'],
+    categories: ['Single-player', 'Multi-player', 'Co-op'],
+    platforms: ['windows', 'xbox'],
+    recommendations: 290000,
+  },
+  {
+    appid: '230410',
+    name: 'Warframe',
+    developer: 'Digital Extremes',
+    publisher: 'Digital Extremes',
+    price: 0.0,
+    rating: 9.1,
+    release_year: 2013,
+    release_date: 'Mar 25, 2013',
+    genres: ['Action', 'Free to Play', 'RPG'],
+    categories: ['Multi-player', 'Co-op'],
+    platforms: ['windows', 'ps5', 'xbox', 'switch'],
+    recommendations: 580000,
+  },
+  {
+    appid: '892970',
+    name: 'Valheim',
+    developer: 'Iron Gate AB',
+    publisher: 'Coffee Stain Publishing',
+    price: 19.99,
+    rating: 9.4,
+    release_year: 2021,
+    release_date: 'Feb 2, 2021',
+    genres: ['Indie', 'Action', 'Adventure', 'RPG'],
+    categories: ['Single-player', 'Multi-player', 'Co-op'],
+    platforms: ['windows', 'linux', 'mac'],
+    recommendations: 390000,
+  },
+  {
+    appid: '945360',
+    name: 'Among Us',
+    developer: 'Innersloth',
+    publisher: 'Innersloth',
+    price: 4.99,
+    rating: 9.2,
+    release_year: 2018,
+    release_date: 'Nov 16, 2018',
+    genres: ['Casual', 'Indie', 'Strategy'],
+    categories: ['Multi-player', 'PvP', 'Co-op'],
+    platforms: ['windows', 'switch', 'ps5', 'xbox'],
+    recommendations: 610000,
+  },
+  {
+    appid: '1097150',
+    name: 'Fall Guys',
+    developer: 'Mediatonic',
+    publisher: 'Epic Games',
+    price: 0.0,
+    rating: 8.2,
+    release_year: 2020,
+    release_date: 'Aug 4, 2020',
+    genres: ['Action', 'Casual', 'Indie', 'Sports'],
+    categories: ['Multi-player', 'PvP'],
+    platforms: ['windows', 'switch', 'ps5', 'xbox'],
+    recommendations: 430000,
+  },
+  {
+    appid: '1449850',
+    name: 'Neon Drift: 2099',
+    developer: 'Viper Studios',
+    publisher: 'Arcade Stream Pro',
+    price: 49.99,
+    rating: 8.8,
+    release_year: 2024,
+    release_date: 'Jan 15, 2024',
+    genres: ['Racing', 'Action', 'Cyber-Racing'],
+    categories: ['Single-player', 'Multi-player'],
+    platforms: ['windows'],
+    recommendations: 24000,
+  },
+  {
+    appid: '1449851',
+    name: 'Shadow Siege',
+    developer: 'Ironclad Interactive',
+    publisher: 'Arcade Stream Pro',
+    price: 39.5,
+    rating: 8.7,
+    release_year: 2023,
+    release_date: 'May 10, 2023',
+    genres: ['Action', 'Tactical FPS', 'Strategy'],
+    categories: ['Multi-player', 'PvP'],
+    platforms: ['windows', 'xbox'],
+    recommendations: 18000,
+  },
+  {
+    appid: '1449852',
+    name: 'Pixel Vanguard',
+    developer: 'BitLogic Games',
+    publisher: 'Arcade Stream Pro',
+    price: 19.99,
+    rating: 8.6,
+    release_year: 2024,
+    release_date: 'Apr 2, 2024',
+    genres: ['Indie', 'RPG', 'Adventure RPG'],
+    categories: ['Single-player'],
+    platforms: ['switch', 'windows'],
+    recommendations: 12000,
+  }
+];
 
-// Read JSON files
-const games = JSON.parse(
-  fs.readFileSync(path.join(__dirname, '../data/games.json'), 'utf-8')
-);
-
-// Format and parse data before insertion
-const formattedGames = games.map((game) => {
-  return {
-    appid: game.appid,
-    name: game.name,
-    release_year: game.release_year ? parseInt(game.release_year, 10) : null,
-    release_date: game.release_date,
-    genres: game.genres ? game.genres.split(';') : [],
-    categories: game.categories ? game.categories.split(';') : [],
-    price: game.price ? parseFloat(game.price) : 0,
-    recommendations: game.recommendations ? parseInt(game.recommendations, 10) : 0,
-    developer: game.developer,
-    publisher: game.publisher,
-  };
-});
-
-// Import into DB
-const importData = async () => {
+const seedDatabase = async () => {
   try {
-    await Game.deleteMany();
-    await Game.insertMany(formattedGames);
-    console.log('Data Imported successfully');
-    process.exit();
-  } catch (err) {
-    console.error(err);
+    await connectDB();
+
+    console.log('Clearing existing records...');
+    await Game.deleteMany({});
+    await Review.deleteMany({});
+
+    console.log(`Inserting ${initialGames.length} games into MongoDB...`);
+    const insertedGames = await Game.insertMany(initialGames);
+    console.log(`✅ Successfully seeded ${insertedGames.length} games.`);
+
+    // Seed default admin and user
+    const existingAdmin = await User.findOne({ email: 'admin@arcadestream.io' });
+    if (!existingAdmin) {
+      await User.create({
+        name: 'Commander Shepard',
+        email: 'admin@arcadestream.io',
+        password: 'password123',
+        role: 'admin',
+      });
+      console.log('✅ Created default admin user: admin@arcadestream.io (password: password123)');
+    }
+
+    const existingOperator = await User.findOne({ email: 'operator@station.io' });
+    if (!existingOperator) {
+      await User.create({
+        name: 'Fleet Operative',
+        email: 'operator@station.io',
+        password: 'password123',
+        role: 'admin',
+      });
+      console.log('✅ Created default login user: operator@station.io (password: password123)');
+    }
+
+    // Seed sample reviews
+    const sampleReviews = [
+      {
+        userName: 'GamerX99',
+        userEmail: 'gamerx@station.io',
+        gameAppid: '1245620',
+        gameName: 'Elden Ring',
+        rating: 5,
+        comment: 'One of the greatest open world RPGs ever created. Masterpiece gameplay and art design!',
+        recommend: true,
+      },
+      {
+        userName: 'NeonSamurai',
+        userEmail: 'samurai@station.io',
+        gameAppid: '1091500',
+        gameName: 'Cyberpunk 2077',
+        rating: 5,
+        comment: 'Night City is breathtaking with ray tracing. The story and characters are top tier.',
+        recommend: true,
+      },
+      {
+        userName: 'PixelCrafter',
+        userEmail: 'crafter@station.io',
+        gameAppid: '413150',
+        gameName: 'Stardew Valley',
+        rating: 5,
+        comment: 'Relaxing, deeply charming, and endlessly replayable. Best indie simulation game.',
+        recommend: true,
+      },
+    ];
+
+    await Review.insertMany(sampleReviews);
+    console.log('✅ Successfully seeded sample reviews.');
+
+    console.log('\n🎉 DATABASE SEEDING COMPLETED SUCCESSFULLY!\n');
+    process.exit(0);
+  } catch (error) {
+    console.error('❌ Seeding failed:', error);
     process.exit(1);
   }
 };
 
-// Delete data
-const deleteData = async () => {
-  try {
-    await Game.deleteMany();
-    console.log('Data Destroyed successfully');
-    process.exit();
-  } catch (err) {
-    console.error(err);
-    process.exit(1);
-  }
-};
-
-if (process.argv[2] === '-d') {
-  deleteData();
-} else {
-  importData();
-}
+seedDatabase();

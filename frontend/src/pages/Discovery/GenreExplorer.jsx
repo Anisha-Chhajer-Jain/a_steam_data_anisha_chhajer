@@ -4,7 +4,7 @@ import { Explore } from '@mui/icons-material';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { setFilters } from '../../store/gamesSlice';
+import { setFilters } from '../../store';
 
 const genres = [
   { name: 'Action', color: '#ff4f6a', bg: 'rgba(255,79,106,0.1)', emoji: '⚔️', desc: 'Fast-paced combat & shooters' },

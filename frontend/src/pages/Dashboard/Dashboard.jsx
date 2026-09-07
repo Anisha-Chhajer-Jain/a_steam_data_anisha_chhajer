@@ -13,7 +13,7 @@ import {
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchGames } from '../../store/gamesSlice';
+import { fetchGames } from '../../store';
 import { toast } from 'react-toastify';
 import {
   BarChart, Bar, ResponsiveContainer, XAxis, YAxis,

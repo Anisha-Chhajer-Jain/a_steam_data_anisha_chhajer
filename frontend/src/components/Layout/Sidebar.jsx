@@ -19,8 +19,8 @@ import {
   DevicesOutlined,
   StarBorderOutlined,
 } from '@mui/icons-material';
-import { toggleSidebar } from '../../store/uiSlice';
-import { logout } from '../../store/authSlice';
+import { toggleSidebar } from '../../store';
+import { logout } from '../../store';
 
 const DRAWER_WIDTH = 210;
 

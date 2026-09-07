@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon, Save as SaveIcon, Add as AddIcon } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
-import { createGame, updateGame } from '../../store/gamesSlice';
+import { createGame, updateGame } from '../../store';
 import { toast } from 'react-toastify';
 import { GENRE_OPTIONS, PLATFORM_OPTIONS } from '../../utils/constants';
 

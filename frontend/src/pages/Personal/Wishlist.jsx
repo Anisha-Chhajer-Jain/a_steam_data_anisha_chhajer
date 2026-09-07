@@ -3,7 +3,7 @@ import { Box, Typography, Grid, Paper, Button, Stack, Divider } from '@mui/mater
 import { BookmarkBorder, Delete, SportsEsports } from '@mui/icons-material';
 import { Helmet } from 'react-helmet-async';
 import { useDispatch, useSelector } from 'react-redux';
-import { removeFromWishlist } from '../../store/wishlistSlice';
+import { removeFromWishlist } from '../../store';
 import { GameCard } from '../Games/GamesList';
 import { toast } from 'react-toastify';
 

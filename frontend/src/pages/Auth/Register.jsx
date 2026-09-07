@@ -16,7 +16,7 @@ import api from '../../services/api';
 import { toast } from 'react-toastify';
 
 import { useDispatch } from 'react-redux';
-import { loginUser } from '../../store/authSlice';
+import { loginUser } from '../../store';
 
 const Register = () => {
   const navigate = useNavigate();

@@ -3,7 +3,7 @@ import { Box, Typography, Grid, Paper, Button } from '@mui/material';
 import { History, Delete } from '@mui/icons-material';
 import { Helmet } from 'react-helmet-async';
 import { useSelector, useDispatch } from 'react-redux';
-import { clearRecentlyViewed } from '../../store/wishlistSlice';
+import { clearRecentlyViewed } from '../../store';
 import { GameCard } from '../Games/GamesList';
 
 const RecentlyViewed = () => {

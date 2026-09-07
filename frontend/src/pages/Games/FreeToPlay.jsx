@@ -3,7 +3,7 @@ import { Box, Typography, Grid, Skeleton, Chip, Paper } from '@mui/material';
 import { MoneyOff } from '@mui/icons-material';
 import { Helmet } from 'react-helmet-async';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchGames, setFilters } from '../../store/gamesSlice';
+import { fetchGames, setFilters } from '../../store';
 import { GameCard } from './GamesList';
 
 const FreeToPlay = () => {

@@ -3,8 +3,8 @@ import { Box, Typography, TextField, InputAdornment, Grid, Paper, Chip, Stack, S
 import { Search, Clear, BookmarkBorder, Bookmark } from '@mui/icons-material';
 import { Helmet } from 'react-helmet-async';
 import { useDispatch, useSelector } from 'react-redux';
-import { addSavedSearch, removeSavedSearch } from '../../store/wishlistSlice';
-import { fetchGames, setFilters } from '../../store/gamesSlice';
+import { addSavedSearch, removeSavedSearch } from '../../store';
+import { fetchGames, setFilters } from '../../store';
 import { GameCard } from '../Games/GamesList';
 import { toast } from 'react-toastify';
 

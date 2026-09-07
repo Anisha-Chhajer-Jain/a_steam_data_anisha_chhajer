@@ -3,7 +3,7 @@ import { Box, Typography, Grid, Paper, Chip, Button } from '@mui/material';
 import { Recommend, Favorite, Bookmark } from '@mui/icons-material';
 import { Helmet } from 'react-helmet-async';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchGames } from '../../store/gamesSlice';
+import { fetchGames } from '../../store';
 import { GameCard } from '../Games/GamesList';
 
 const Recommendations = () => {
